@@ -1,0 +1,24 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+
+if(rootProject.ext.customAndroidGradle == null)
+    apply from : '../android.gradle'
+else
+    apply from : rootProject.ext.customAndroidGradle
+
+apply from : '../conf-dependencies.gradle'
+apply from : '../conf-dependencies-test.gradle'

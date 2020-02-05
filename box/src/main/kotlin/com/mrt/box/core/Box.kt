@@ -7,7 +7,7 @@ import com.mrt.box.android.BoxVm
  */
 object Box {
 
-    var isEnableLog: Boolean = false
+    private var isEnableLog: Boolean = false
     var logger: ((String) -> Unit)? = null
 
     fun disableLog() {

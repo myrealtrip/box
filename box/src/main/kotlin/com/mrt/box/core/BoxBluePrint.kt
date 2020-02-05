@@ -12,7 +12,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, W : BoxWork> internal constructor
         private val heavyWorks: Map<BoxKey<W, W>, suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?>,
         private val lightWorks: Map<BoxKey<W, W>, (BoxOutput.Valid<S, E, W>) -> Any?>
 ) {
-    internal fun reduce(state: S, event: E): BoxOutput<S, E, W> {
+    fun reduce(state: S, event: E): BoxOutput<S, E, W> {
         return synchronized(this) {
             state.toOutput(event)
         }

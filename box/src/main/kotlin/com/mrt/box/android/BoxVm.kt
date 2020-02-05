@@ -20,13 +20,13 @@ import kotlin.coroutines.CoroutineContext
  * Created by jaehochoe on 2020-01-01.
  */
 abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
-        CoroutineScope, Vm {
+    CoroutineScope, Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
     private var isInitialized = false
     private var stateInternal: S = bluePrint.initialState
-    protected val state: S
+    val state: S
         get() = stateInternal
 
     protected var parentState: BoxState? = null
@@ -133,15 +133,17 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
     }
 
     fun <V : BoxAndroidView<S, E>> bind(view: V) {
-        if (view is LifecycleOwner) {
-            stateLiveData.observe(view, Observer {
-                Box.log("View will view by $it")
-                view.render(it as S)
-            })
-            if (isInitialized.not()) {
-                Box.log("Vm has initial state as ${bluePrint.initialState}")
-                view(bluePrint.initialState)
-                isInitialized = true
+        when (view) {
+            is LifecycleOwner -> {
+                stateLiveData.observe(view, Observer {
+                    Box.log("View will view by $it")
+                    view.render(it as S)
+                })
+                if (isInitialized.not()) {
+                    Box.log("Vm has initial state as ${bluePrint.initialState}")
+                    view(bluePrint.initialState)
+                    isInitialized = true
+                }
             }
         }
     }
@@ -154,7 +156,12 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
         }
     }
 
-    open fun onActivityResult(activity: AppCompatActivity, requestCode: Int, resultCode: Int, data: Intent?) {
+    open fun onActivityResult(
+        activity: AppCompatActivity,
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         linkedVms()?.forEach {
             it.onActivityResult(activity, requestCode, resultCode, data)
         }
@@ -170,14 +177,6 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
     }
 
     open fun linkedVms(): Array<BoxVm<BoxState, BoxEvent, BoxWork>>? {
-        return null
-    }
-
-    protected inline fun applyState(changes: S.() -> Unit): S {
-        return newState()?.apply(changes) ?: throw Exception("newState() must be not null")
-    }
-
-    open fun newState() : S? {
         return null
     }
 }

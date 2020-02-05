@@ -6,7 +6,7 @@ import kotlinx.coroutines.Deferred
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, WORK : BoxWork>(val initialState: STATE) {
+class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, WORK : BoxWork>(private val initialState: STATE) {
     val outputs = mutableMapOf<BoxKey<EVENT, EVENT>, (STATE, EVENT) -> BoxBlueprint.To<STATE, WORK>>()
     val heavyWorks = mutableMapOf<BoxKey<WORK, WORK>, suspend (BoxOutput.Valid<STATE, EVENT, WORK>) -> Deferred<Any?>?>()
     val lightWorks = mutableMapOf<BoxKey<WORK, WORK>, (BoxOutput.Valid<STATE, EVENT, WORK>) -> Any?>()

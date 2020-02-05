@@ -30,7 +30,11 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
         get() = stateInternal
 
     protected var parentState: BoxState? = null
+
     val stateLiveData = MutableLiveData<S>()
+    init {
+        stateLiveData.value = state
+    }
 
     private val identifier = Job()
     private val jobs = mutableListOf<Job>()

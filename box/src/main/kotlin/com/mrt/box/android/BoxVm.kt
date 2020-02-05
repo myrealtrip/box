@@ -26,7 +26,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
 
     private var isInitialized = false
     private var stateInternal: S = bluePrint.initialState
-    private val state: S
+    protected val state: S
         get() = stateInternal
 
     protected var parentState: BoxState? = null

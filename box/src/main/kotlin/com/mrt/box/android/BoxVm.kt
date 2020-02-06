@@ -19,10 +19,10 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
+abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     CoroutineScope, Vm {
 
-    abstract val bluePrint: BoxBlueprint<S, E, SE>
+    abstract val bluePrint: BoxBlueprint<S, E, W>
 
     private var isInitialized = false
     private var stateInternal: S = bluePrint.initialState
@@ -42,45 +42,47 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier
 
-    private fun model(event: E) {
-        val output: BoxOutput<S, E, SE> = bluePrint.reduce(stateInternal, event)
+    private fun model(event: E): BoxOutput<S, E, W> {
+        val output: BoxOutput<S, E, W> = bluePrint.reduce(stateInternal, event)
         Box.log("Intent was $output")
         if (output is BoxOutput.Valid) {
             stateInternal = output.to
             view(stateInternal)
-            output.work?.let { sideEffect ->
-                Box.log("Transition has side effect $sideEffect")
+            output.work?.let { workToDo ->
+                Box.log("Output has work $workToDo")
                 var result: Any? = null
                 var isHeavyWork = false
-                var toDo: Any? = bluePrint.getWorkOrNull(sideEffect)
+                var toDo: Any? = bluePrint.getWorkOrNull(workToDo)
                 if (toDo == null) {
-                    toDo = bluePrint.getHeavyWorkOrNull(sideEffect)
+                    toDo = bluePrint.getHeavyWorkOrNull(workToDo)
 
                     if (toDo == null)
-                        return@model
+                        return@model output
                     else
                         isHeavyWork = true
                 }
                 when (isHeavyWork) {
                     true -> {
-                        val toDo = bluePrint.getHeavyWorkOrNull(sideEffect) ?: return@model
-                        Box.log("Do in Background: $sideEffect")
+                        val toDo = bluePrint.getHeavyWorkOrNull(workToDo) ?: return@model output
+                        Box.log("Do in Background: $workToDo")
                         workThread {
                             result = toDo(output)?.await()
-                            Box.log("Result is $result for $sideEffect")
+                            Box.log("Result is $result for $workToDo")
                             handleResult(result)
                         }
                     }
                     else -> {
-                        val toDo = bluePrint.getWorkOrNull((sideEffect)) ?: return@model
-                        Box.log("Do in Foreground: $sideEffect")
+                        val toDo = bluePrint.getWorkOrNull((workToDo)) ?: return@model output
+                        Box.log("Do in Foreground: $workToDo")
                         result = toDo(output)
-                        Box.log("Result is $result for $sideEffect")
+                        Box.log("Result is $result for $workToDo")
                         handleResult(result)
                     }
                 }
             }
         }
+
+        return output
     }
 
     private fun handleResult(result: Any?) {
@@ -99,9 +101,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
         this.stateLiveData.value = state
     }
 
-    override fun intent(event: Any) {
+    override fun intent(event: Any): BoxOutput<S, E, W>? {
+        var output: BoxOutput<S, E, W>? = null
         if (isValidEvent(event)) {
-            model(event as E)
+            output = model(event as E)
         } else {
             Box.log("Intent was not BoxEvent")
         }
@@ -114,6 +117,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxWork> : ViewModel(),
                 }
             }
         }
+        return output
     }
 
     protected fun mainThread(block: suspend () -> Unit) {

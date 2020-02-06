@@ -3,19 +3,19 @@ package com.mrt.box.core
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-sealed class BoxOutput<out STATE : BoxState, out EVENT : BoxEvent, out WORK : BoxWork> {
-    abstract val from: STATE
-    abstract val event: EVENT
+sealed class BoxOutput<out S : BoxState, out E : BoxEvent, out W : BoxWork> {
+    abstract val from: S
+    abstract val event: E
 
-    data class Valid<out STATE : BoxState, out EVENT : BoxEvent, out WORK : BoxWork>(
-            override val from: STATE,
-            override val event: EVENT,
-            val to: STATE,
-            val work: WORK
-    ) : BoxOutput<STATE, EVENT, WORK>()
+    data class Valid<out S : BoxState, out E : BoxEvent, out W : BoxWork>(
+        override val from: S,
+        override val event: E,
+        val to: S,
+        val work: W
+    ) : BoxOutput<S, E, W>()
 
-    data class Void<out STATE : BoxState, out EVENT : BoxEvent, out WORK : BoxWork>(
-            override val from: STATE,
-            override val event: EVENT
-    ) : BoxOutput<STATE, EVENT, WORK>()
+    data class Void<out S : BoxState, out E : BoxEvent, out W : BoxWork>(
+        override val from: S,
+        override val event: E
+    ) : BoxOutput<S, E, W>()
 }

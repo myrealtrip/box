@@ -18,7 +18,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, W : BoxWork> internal constructor
         }
     }
 
-    internal fun getHeavyWorkOrNull(work: W): (suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?)? {
+    fun heavyWorkOrNull(work: W): (suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?)? {
         return synchronized(this) {
             heavyWorks.filter { it.key.check(work) }
                     .map { it.value }
@@ -26,7 +26,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, W : BoxWork> internal constructor
         }
     }
 
-    internal fun getWorkOrNull(work: W): ((BoxOutput.Valid<S, E, W>) -> Any?)? {
+    fun workOrNull(work: W): ((BoxOutput.Valid<S, E, W>) -> Any?)? {
         return synchronized(this) {
             lightWorks
                     .filter { it.key.check(work) }

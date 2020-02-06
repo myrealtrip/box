@@ -84,10 +84,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     fun handleWork(output: BoxOutput.Valid<S, E, W>) {
         val work = output.work
         Box.log("Output has work $work")
-        bluePrint.getWorkOrNull(work)?.let {
+        bluePrint.workOrNull(work)?.let {
             doWork(output, it)
         }
-        bluePrint.getHeavyWorkOrNull(work)?.let {
+        bluePrint.heavyWorkOrNull(work)?.let {
             doWorkInWorkThread(output, it)
         }
     }

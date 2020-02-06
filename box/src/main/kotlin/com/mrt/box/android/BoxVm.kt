@@ -9,10 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
 import com.mrt.box.core.*
 import com.mrt.box.isValidEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -32,6 +29,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     protected var parentState: BoxState? = null
 
     val stateLiveData = MutableLiveData<S>()
+
     init {
         stateLiveData.value = state
     }
@@ -41,65 +39,6 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier
-
-    private fun model(event: E): BoxOutput<S, E, W> {
-        val output: BoxOutput<S, E, W> = bluePrint.reduce(stateInternal, event)
-        Box.log("Intent was $output")
-        if (output is BoxOutput.Valid) {
-            stateInternal = output.to
-            view(stateInternal)
-            output.work?.let { workToDo ->
-                Box.log("Output has work $workToDo")
-                var result: Any? = null
-                var isHeavyWork = false
-                var toDo: Any? = bluePrint.getWorkOrNull(workToDo)
-                if (toDo == null) {
-                    toDo = bluePrint.getHeavyWorkOrNull(workToDo)
-
-                    if (toDo == null)
-                        return@model output
-                    else
-                        isHeavyWork = true
-                }
-                when (isHeavyWork) {
-                    true -> {
-                        val toDo = bluePrint.getHeavyWorkOrNull(workToDo) ?: return@model output
-                        Box.log("Do in Background: $workToDo")
-                        workThread {
-                            result = toDo(output)?.await()
-                            Box.log("Result is $result for $workToDo")
-                            handleResult(result)
-                        }
-                    }
-                    else -> {
-                        val toDo = bluePrint.getWorkOrNull((workToDo)) ?: return@model output
-                        Box.log("Do in Foreground: $workToDo")
-                        result = toDo(output)
-                        Box.log("Result is $result for $workToDo")
-                        handleResult(result)
-                    }
-                }
-            }
-        }
-
-        return output
-    }
-
-    private fun handleResult(result: Any?) {
-        when (result) {
-            is BoxState -> {
-                this.stateInternal = result as S
-                mainThread { view(this.stateInternal) }
-            }
-            is BoxEvent -> {
-                mainThread { intent(result as E) }
-            }
-        }
-    }
-
-    private fun view(state: S) {
-        this.stateLiveData.value = state
-    }
 
     override fun intent(event: Any): BoxOutput<S, E, W>? {
         var output: BoxOutput<S, E, W>? = null
@@ -118,6 +57,76 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
             }
         }
         return output
+    }
+
+    private fun model(event: E): BoxOutput<S, E, W> {
+        return bluePrint.reduce(stateInternal, event).also { output ->
+            Box.log("BoxVm found Event [$event]")
+            handleOutput(output)
+        }
+    }
+
+    fun handleOutput(output: BoxOutput<S, E, W>) {
+        when (output) {
+            is BoxOutput.Valid -> {
+                Box.log("Event to be $output")
+                stateInternal = output.to
+                view(stateInternal)
+                when (output.work) {
+                    null, is BoxVoidWork -> return
+                    else -> handleWork(output)
+                }
+            }
+            else -> Box.log("Event to be nothing")
+        }
+    }
+
+    fun handleWork(output: BoxOutput.Valid<S, E, W>) {
+        val work = output.work
+        Box.log("Output has work $work")
+        bluePrint.getWorkOrNull(work)?.let {
+            doWork(output, it)
+        }
+        bluePrint.getHeavyWorkOrNull(work)?.let {
+            doWorkInWorkThread(output, it)
+        }
+    }
+
+    private fun doWork(output: BoxOutput.Valid<S, E, W>, toDo: (BoxOutput.Valid<S, E, W>) -> Any?) {
+        Box.log("Do in Foreground: ${output.work}")
+        toDo(output).also {
+            Box.log("Result is $it for ${output.work}")
+            handleResult(it)
+        }
+    }
+
+    private fun doWorkInWorkThread(
+        output: BoxOutput.Valid<S, E, W>,
+        toDo: suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?
+    ) {
+        Box.log("Do in Background: ${output.work}")
+        workThread {
+            toDo(output)?.await().also {
+                Box.log("Result is $it for ${output.work}")
+                handleResult(it)
+            }
+        }
+    }
+
+    fun handleResult(result: Any?) {
+        when (result) {
+            is BoxState -> {
+                this.stateInternal = result as S
+                mainThread { view(this.stateInternal) }
+            }
+            is BoxEvent -> {
+                mainThread { intent(result as E) }
+            }
+        }
+    }
+
+    private fun view(state: S) {
+        this.stateLiveData.value = state
     }
 
     protected fun mainThread(block: suspend () -> Unit) {

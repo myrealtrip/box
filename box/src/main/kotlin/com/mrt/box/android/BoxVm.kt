@@ -16,7 +16,8 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope, Vm {
+abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
+    Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
@@ -83,15 +84,18 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleSideEffect(output: BoxOutput.Valid<S, E, SE>) {
         val sideEffect = output.sideEffect
         Box.log("Output has sideEffect $sideEffect")
-        bluePrint.getWorkOrNull(sideEffect)?.let {
+        bluePrint.workOrNull(sideEffect)?.let {
             doWork(output, it)
         }
-        bluePrint.getHeavyWorkOrNull(sideEffect)?.let {
+        bluePrint.heavyWorkOrNull(sideEffect)?.let {
             doWorkInWorkThread(output, it)
         }
     }
 
-    private fun doWork(output: BoxOutput.Valid<S, E, SE>, toDo: (BoxOutput.Valid<S, E, SE>) -> Any?) {
+    private fun doWork(
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: (BoxOutput.Valid<S, E, SE>) -> Any?
+    ) {
         Box.log("Do in Foreground: ${output.sideEffect}")
         toDo(output).also {
             Box.log("Result is $it for ${output.sideEffect}")

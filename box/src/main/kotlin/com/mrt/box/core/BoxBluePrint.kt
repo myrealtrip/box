@@ -7,10 +7,10 @@ import kotlinx.coroutines.Deferred
  * Created by jaehochoe on 2020-01-01.
  */
 class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal constructor(
-        val initialState: S,
-        private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
-        private val heavyWorks: Map<BoxKey<SE, SE>, suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?>,
-        private val lightWorks: Map<BoxKey<SE, SE>, (BoxOutput.Valid<S, E, SE>) -> Any?>
+    val initialState: S,
+    private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
+    private val heavyWorks: Map<BoxKey<SE, SE>, suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?>,
+    private val lightWorks: Map<BoxKey<SE, SE>, (BoxOutput.Valid<S, E, SE>) -> Any?>
 ) {
     fun reduce(state: S, event: E): BoxOutput<S, E, SE> {
         return synchronized(this) {
@@ -18,20 +18,21 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal cons
         }
     }
 
-    internal fun getHeavyWorkOrNull(sideEffect: SE): (suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?)? {
+    fun heavyWorkOrNull(sideEffect: SE): (suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?)? {
         return synchronized(this) {
-            heavyWorks.filter { it.key.check(sideEffect) }
-                    .map { it.value }
-                    .firstOrNull()
+            heavyWorks
+                .filter { it.key.check(sideEffect) }
+                .map { it.value }
+                .firstOrNull()
         }
     }
 
-    internal fun getWorkOrNull(sideEffect: SE): ((BoxOutput.Valid<S, E, SE>) -> Any?)? {
+    fun workOrNull(sideEffect: SE): ((BoxOutput.Valid<S, E, SE>) -> Any?)? {
         return synchronized(this) {
             lightWorks
-                    .filter { it.key.check(sideEffect) }
-                    .map { it.value }
-                    .firstOrNull()
+                .filter { it.key.check(sideEffect) }
+                .map { it.value }
+                .firstOrNull()
         }
     }
 
@@ -46,7 +47,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal cons
     }
 
     data class To<out STATE : BoxState, out SIDE_EFFECT : BoxSideEffect> internal constructor(
-            val toState: STATE,
-            val sideEffect: SIDE_EFFECT
+        val toState: STATE,
+        val sideEffect: SIDE_EFFECT
     )
 }

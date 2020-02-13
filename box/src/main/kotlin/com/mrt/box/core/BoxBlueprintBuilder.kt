@@ -11,16 +11,16 @@ class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, SIDE_EFFECT : BoxS
     val heavyWorks = mutableMapOf<BoxKey<SIDE_EFFECT, SIDE_EFFECT>, suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>?>()
     val lightWorks = mutableMapOf<BoxKey<SIDE_EFFECT, SIDE_EFFECT>, (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?>()
 
-    inline fun <reified W : SIDE_EFFECT> seInBackground(
-            noinline init: suspend (BoxOutput.Valid<STATE, EVENT, W>) -> Deferred<Any?>?
+    inline fun <reified SE : SIDE_EFFECT> seOnBackground(
+            noinline init: suspend (BoxOutput.Valid<STATE, EVENT, SE>) -> Deferred<Any?>?
     ) {
-        heavyWorks[BoxKey<SIDE_EFFECT, W>(W::class.java)] = init as (suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>)
+        heavyWorks[BoxKey<SIDE_EFFECT, SE>(SE::class.java)] = init as (suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>)
     }
 
-    inline fun <reified W : SIDE_EFFECT> se(
-            noinline init: (BoxOutput.Valid<STATE, EVENT, W>) -> Any?
+    inline fun <reified SE : SIDE_EFFECT> se(
+            noinline init: (BoxOutput.Valid<STATE, EVENT, SE>) -> Any?
     ) {
-        lightWorks[BoxKey<SIDE_EFFECT, W>(W::class.java)] = init as (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?
+        lightWorks[BoxKey<SIDE_EFFECT, SE>(SE::class.java)] = init as (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?
     }
 
     inline fun <reified E : EVENT> on(

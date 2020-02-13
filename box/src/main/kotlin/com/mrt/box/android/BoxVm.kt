@@ -16,10 +16,9 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
-    CoroutineScope, Vm {
+abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope, Vm {
 
-    abstract val bluePrint: BoxBlueprint<S, E, W>
+    abstract val bluePrint: BoxBlueprint<S, E, SE>
 
     private var isInitialized = false
     private var stateInternal: S = bluePrint.initialState
@@ -28,10 +27,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
 
     protected var parentState: BoxState? = null
 
-    val stateLiveData = MutableLiveData<S>()
+    val currentState = MutableLiveData<S>()
 
     init {
-        stateLiveData.value = state
+        currentState.value = state
     }
 
     private val identifier = Job()
@@ -40,8 +39,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier
 
-    override fun intent(event: Any): BoxOutput<S, E, W>? {
-        var output: BoxOutput<S, E, W>? = null
+    override fun intent(event: Any): BoxOutput<S, E, SE>? {
+        var output: BoxOutput<S, E, SE>? = null
         if (isValidEvent(event)) {
             output = model(event as E)
         } else {
@@ -59,55 +58,55 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
         return output
     }
 
-    private fun model(event: E): BoxOutput<S, E, W> {
+    private fun model(event: E): BoxOutput<S, E, SE> {
         return bluePrint.reduce(stateInternal, event).also { output ->
             Box.log("BoxVm found Event [$event]")
             handleOutput(output)
         }
     }
 
-    fun handleOutput(output: BoxOutput<S, E, W>) {
+    fun handleOutput(output: BoxOutput<S, E, SE>) {
         when (output) {
             is BoxOutput.Valid -> {
                 Box.log("Event to be $output")
                 stateInternal = output.to
                 view(stateInternal)
-                when (output.work) {
-                    null, is BoxVoidWork -> return
-                    else -> handleWork(output)
+                when (output.sideEffect) {
+                    null, is BoxVoidSideEffect -> return
+                    else -> handleSideEffect(output)
                 }
             }
             else -> Box.log("Event to be nothing")
         }
     }
 
-    fun handleWork(output: BoxOutput.Valid<S, E, W>) {
-        val work = output.work
-        Box.log("Output has work $work")
-        bluePrint.getWorkOrNull(work)?.let {
+    fun handleSideEffect(output: BoxOutput.Valid<S, E, SE>) {
+        val sideEffect = output.sideEffect
+        Box.log("Output has sideEffect $sideEffect")
+        bluePrint.getWorkOrNull(sideEffect)?.let {
             doWork(output, it)
         }
-        bluePrint.getHeavyWorkOrNull(work)?.let {
+        bluePrint.getHeavyWorkOrNull(sideEffect)?.let {
             doWorkInWorkThread(output, it)
         }
     }
 
-    private fun doWork(output: BoxOutput.Valid<S, E, W>, toDo: (BoxOutput.Valid<S, E, W>) -> Any?) {
-        Box.log("Do in Foreground: ${output.work}")
+    private fun doWork(output: BoxOutput.Valid<S, E, SE>, toDo: (BoxOutput.Valid<S, E, SE>) -> Any?) {
+        Box.log("Do in Foreground: ${output.sideEffect}")
         toDo(output).also {
-            Box.log("Result is $it for ${output.work}")
+            Box.log("Result is $it for ${output.sideEffect}")
             handleResult(it)
         }
     }
 
     private fun doWorkInWorkThread(
-        output: BoxOutput.Valid<S, E, W>,
-        toDo: suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?
     ) {
-        Box.log("Do in Background: ${output.work}")
+        Box.log("Do in Background: ${output.sideEffect}")
         workThread {
             toDo(output)?.await().also {
-                Box.log("Result is $it for ${output.work}")
+                Box.log("Result is $it for ${output.sideEffect}")
                 handleResult(it)
             }
         }
@@ -126,7 +125,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     }
 
     private fun view(state: S) {
-        this.stateLiveData.value = state
+        this.currentState.value = state
     }
 
     protected fun mainThread(block: suspend () -> Unit) {
@@ -152,7 +151,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     fun <V : BoxAndroidView<S, E>> bind(view: V) {
         when (view) {
             is LifecycleOwner -> {
-                stateLiveData.observe(view, Observer {
+                currentState.observe(view, Observer {
                     Box.log("View will view by $it")
                     view.render(it as S)
                 })
@@ -193,7 +192,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, W : BoxWork> : ViewModel(),
     open fun onSubscribe(inAppEvent: InAppEvent) {
     }
 
-    open fun linkedVms(): Array<BoxVm<BoxState, BoxEvent, BoxWork>>? {
+    open fun linkedVms(): Array<BoxVm<BoxState, BoxEvent, BoxSideEffect>>? {
         return null
     }
 }

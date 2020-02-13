@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 /**
  * Created by jaehochoe on 2020-01-03.
  */
-abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxWork> : Fragment(),
+abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fragment(),
         BoxAndroidView<S, E> {
 
     abstract val isNeedLazyLoading: Boolean

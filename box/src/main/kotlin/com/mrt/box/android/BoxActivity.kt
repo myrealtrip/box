@@ -10,13 +10,13 @@ import com.mrt.box.android.event.event.BoxInAppEvent
 import com.mrt.box.core.Box
 import com.mrt.box.core.BoxEvent
 import com.mrt.box.core.BoxState
-import com.mrt.box.core.BoxWork
+import com.mrt.box.core.BoxSideEffect
 import kotlinx.coroutines.launch
 
 /**
  * Created by jaehochoe on 2020-01-03.
  */
-abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxWork> : AppCompatActivity(), BoxAndroidView<S, E> {
+abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : AppCompatActivity(), BoxAndroidView<S, E> {
 
     private val rendererList: List<BoxRenderer<S, E>> by lazy {
         val list = (extraRenderer() ?: mutableListOf())

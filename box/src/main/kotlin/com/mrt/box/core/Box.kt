@@ -33,9 +33,9 @@ object Box {
 
 }
 
-fun <STATE : BoxState, EVENT : BoxEvent, WORK : BoxWork> BoxVm<STATE, EVENT, WORK>.bluePrint(
+fun <STATE : BoxState, EVENT : BoxEvent, SIDE_EFFECT : BoxSideEffect> BoxVm<STATE, EVENT, SIDE_EFFECT>.bluePrint(
         initialState: STATE,
-        init: BoxBlueprintBuilder<STATE, EVENT, WORK>.() -> Unit
-): BoxBlueprint<STATE, EVENT, WORK> {
-    return BoxBlueprintBuilder<STATE, EVENT, WORK>(initialState).apply(init).build()
+        init: BoxBlueprintBuilder<STATE, EVENT, SIDE_EFFECT>.() -> Unit
+): BoxBlueprint<STATE, EVENT, SIDE_EFFECT> {
+    return BoxBlueprintBuilder<STATE, EVENT, SIDE_EFFECT>(initialState).apply(init).build()
 }

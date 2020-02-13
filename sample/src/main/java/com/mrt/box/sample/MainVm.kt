@@ -8,9 +8,9 @@ import kotlinx.coroutines.async
 /**
  * Created by jaehochoe on 2020-01-02.
  */
-class MainVm : BoxVm<MainState, MainEvent, MainWork>() {
+class MainVm : BoxVm<MainState, MainEvent, MainSideEffect>() {
 
-    override val bluePrint: BoxBlueprint<MainState, MainEvent, MainWork>
+    override val bluePrint: BoxBlueprint<MainState, MainEvent, MainSideEffect>
         get() = bluePrint(MainState(0)) {
 
             on<MainEvent.OnUpCount> {
@@ -23,10 +23,10 @@ class MainVm : BoxVm<MainState, MainEvent, MainWork>() {
                 to(copy(count = 0))
             }
             on<MainEvent.OnClickLayout> {
-                to(copy(), MainWork.AutoCountUp(3))
+                to(copy(), MainSideEffect.AutoCountUp(3))
             }
             on<MainEvent.OnClickFinish> {
-                to(MainWork.Finish {
+                to(MainSideEffect.Finish {
                     it.activity.finish()
                 })
             }
@@ -35,8 +35,8 @@ class MainVm : BoxVm<MainState, MainEvent, MainWork>() {
                 to(copy(count = 0))
             }
 
-            workInBackground<MainWork.AutoCountUp> {
-                return@workInBackground autoCountUpAsync(it.work.count)
+            seInBackground<MainSideEffect.AutoCountUp> {
+                return@seInBackground autoCountUpAsync(it.sideEffect.count)
             }
         }
 

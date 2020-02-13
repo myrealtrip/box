@@ -6,47 +6,47 @@ import kotlinx.coroutines.Deferred
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-class BoxBlueprint<S : BoxState, E : BoxEvent, W : BoxWork> internal constructor(
+class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal constructor(
         val initialState: S,
-        private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, W>>,
-        private val heavyWorks: Map<BoxKey<W, W>, suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?>,
-        private val lightWorks: Map<BoxKey<W, W>, (BoxOutput.Valid<S, E, W>) -> Any?>
+        private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
+        private val heavyWorks: Map<BoxKey<SE, SE>, suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?>,
+        private val lightWorks: Map<BoxKey<SE, SE>, (BoxOutput.Valid<S, E, SE>) -> Any?>
 ) {
-    fun reduce(state: S, event: E): BoxOutput<S, E, W> {
+    fun reduce(state: S, event: E): BoxOutput<S, E, SE> {
         return synchronized(this) {
             state.toOutput(event)
         }
     }
 
-    internal fun getHeavyWorkOrNull(work: W): (suspend (BoxOutput.Valid<S, E, W>) -> Deferred<Any?>?)? {
+    internal fun getHeavyWorkOrNull(sideEffect: SE): (suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?)? {
         return synchronized(this) {
-            heavyWorks.filter { it.key.check(work) }
+            heavyWorks.filter { it.key.check(sideEffect) }
                     .map { it.value }
                     .firstOrNull()
         }
     }
 
-    internal fun getWorkOrNull(work: W): ((BoxOutput.Valid<S, E, W>) -> Any?)? {
+    internal fun getWorkOrNull(sideEffect: SE): ((BoxOutput.Valid<S, E, SE>) -> Any?)? {
         return synchronized(this) {
             lightWorks
-                    .filter { it.key.check(work) }
+                    .filter { it.key.check(sideEffect) }
                     .map { it.value }
                     .firstOrNull()
         }
     }
 
-    private fun S.toOutput(event: E): BoxOutput<S, E, W> {
+    private fun S.toOutput(event: E): BoxOutput<S, E, SE> {
         for ((key, stateTo) in outputs) {
             if (key.check(event)) {
-                val (toState, work) = stateTo(this, event)
-                return BoxOutput.Valid(this, event, toState, work)
+                val (toState, sideEffect) = stateTo(this, event)
+                return BoxOutput.Valid(this, event, toState, sideEffect)
             }
         }
         return BoxOutput.Void(this, event)
     }
 
-    data class To<out STATE : BoxState, out WORK : BoxWork> internal constructor(
+    data class To<out STATE : BoxState, out SIDE_EFFECT : BoxSideEffect> internal constructor(
             val toState: STATE,
-            val work: WORK
+            val sideEffect: SIDE_EFFECT
     )
 }

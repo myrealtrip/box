@@ -6,7 +6,7 @@ import com.mrt.box.android.BoxRenderer
 import com.mrt.box.android.BoxViewInitializer
 import com.mrt.box.core.Box
 
-class MainActivity : BoxActivity<MainState, MainEvent, MainWork>() {
+class MainActivity : BoxActivity<MainState, MainEvent, MainSideEffect>() {
 
     init {
         Box.enableLog()

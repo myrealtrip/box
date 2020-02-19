@@ -1,6 +1,6 @@
 package com.mrt.box.core
 
 /**
- * Created by jaehochoe on 2020-01-14.
+ * Created by jaehochoe on 2020-01-13.
  */
-class BoxVoidState : BoxState
+object BoxVoidState: BoxState

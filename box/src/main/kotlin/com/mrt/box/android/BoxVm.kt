@@ -66,6 +66,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         }
     }
 
+    @SuppressWarnings("unchecked")
     fun handleOutput(output: BoxOutput<S, E, SE>) {
         when (output) {
             is BoxOutput.Valid -> {
@@ -81,6 +82,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         }
     }
 
+    @SuppressWarnings("unchecked")
     fun handleSideEffect(output: BoxOutput.Valid<S, E, SE>) {
         val sideEffect = output.sideEffect
         Box.log("Output has sideEffect $sideEffect")
@@ -116,6 +118,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         }
     }
 
+    @SuppressWarnings("unchecked")
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
@@ -132,7 +135,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         this.currentState.value = state
     }
 
-    protected fun mainThread(block: suspend () -> Unit) {
+    @SuppressWarnings("unchecked")
+    protected fun mainThread(block: () -> Unit) {
         val job = launch {
             block()
         }
@@ -142,8 +146,9 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         jobs.add(job)
     }
 
+    @SuppressWarnings("unchecked")
     protected fun workThread(block: suspend () -> Unit) {
-        val job = launch(Dispatchers.Main) {
+        val job = launch(Dispatchers.IO) {
             block()
         }
         job.invokeOnCompletion {

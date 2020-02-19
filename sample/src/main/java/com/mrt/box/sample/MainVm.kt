@@ -42,7 +42,7 @@ class MainVm : BoxVm<MainState, MainEvent, MainSideEffect>() {
 
     private suspend fun autoCountUpAsync(count: Int) = async {
         for (i in 0..count) {
-            mainThread { intent(MainEvent.OnUpCount) }
+            intent(MainEvent.OnUpCount)
             kotlinx.coroutines.delay(1000)
         }
         return@async MainEvent.OnFinishedCleaning

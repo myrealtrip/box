@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
  * Created by jaehochoe on 2019-09-26.
  */
 object BoxInAppEvent {
-    val bus: BroadcastChannel<InAppEvent> = ConflatedBroadcastChannel()
+    val bus: BroadcastChannel<InAppEvent> = ConflatedBroadcastChannel() // 버퍼 확인
 
     fun send(o: InAppEvent) {
         MainScope().launch {

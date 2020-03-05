@@ -5,16 +5,16 @@ import com.mrt.box.android.BoxAndroidView
 import com.mrt.box.android.BoxViewInitializer
 import com.mrt.box.be
 import com.mrt.box.core.Vm
-import com.mrt.box.sample.databinding.ActivityMainBinding
+import com.mrt.box.sample.databinding.ActivityExampleBinding
 
 /**
  * Created by jaehochoe on 2020-02-06.
  */
-object MainInitView : BoxViewInitializer<MainState, MainEvent> {
+object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
     override fun <B : ViewDataBinding, VM : Vm> bindingVm(b: B?, vm: VM) {
-        b.be<ActivityMainBinding>().vm = vm
+        b.be<ActivityExampleBinding>().vm = vm
     }
 
-    override fun initializeView(v: BoxAndroidView<MainState, MainEvent>, vm: Vm?) {
+    override fun initializeView(v: BoxAndroidView<ExampleState, ExampleEvent>, vm: Vm?) {
     }
 }

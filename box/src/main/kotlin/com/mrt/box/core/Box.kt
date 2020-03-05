@@ -21,9 +21,13 @@ object Box {
     }
 
     fun log(any: Any) {
+        log { any.toString() }
+    }
+
+    fun log(any: () -> Any?) {
         if(isEnableLog.not()) return
         logger?.let {
-            it(any.toString())
+            it(any().toString())
         } ?: println(any)
     }
 

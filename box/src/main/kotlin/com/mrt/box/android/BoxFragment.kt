@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
  * Created by jaehochoe on 2020-01-03.
  */
 abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fragment(),
-        BoxAndroidView<S, E> {
+    BoxAndroidView<S, E> {
 
     abstract val isNeedLazyLoading: Boolean
     private var isBound = false
@@ -27,8 +27,8 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
         val list = (extraRenderer() ?: mutableListOf())
         renderer?.let {
             list.add(0, it)
-            list
-        } ?: list
+        }
+        list
     }
 
     abstract val renderer: BoxRenderer<S, E>?
@@ -46,23 +46,27 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     open fun preOnCreateView(savedInstanceState: Bundle?) {
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         preOnCreateView(savedInstanceState)
         return if (layout > 0) {
             bindingTemp = DataBindingUtil.inflate(inflater, layout, container, false)
             binding?.lifecycleOwner = this
             vm?.let {
                 bindingVm(binding, it)
-                if(isNeedLazyLoading.not()) {
+                if (isNeedLazyLoading.not()) {
                     it?.bind(this@BoxFragment)
                     isBound = true
                 }
                 it.launch {
-                    val channel = BoxInAppEvent.asChannel<InAppEvent>()
+                    val channel = BoxInAppEvent.asChannel<InAppEvent>() // 하단은 fun
                     var isNeedSkipFirstEvent = channel.isEmpty.not()
                     for (inAppEvent in channel) {
-                        if(isNeedSkipFirstEvent.not()) {
-                            Box.log("InAppEvent = $inAppEvent in ${this@BoxFragment}")
+                        if (isNeedSkipFirstEvent.not()) {
+                            Box.log { "InAppEvent = $inAppEvent in ${this@BoxFragment}" }
                             onSubscribe(inAppEvent)
                         } else
                             isNeedSkipFirstEvent = false
@@ -84,7 +88,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     override fun render(state: S) {
-        for (renderer in rendererList) {
+        rendererList.forEach { renderer ->
             renderer.render(this, state, vm)
         }
     }
@@ -99,7 +103,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     override fun activity(): AppCompatActivity {
-        if(activity !is AppCompatActivity)
+        if (activity !is AppCompatActivity)
             error("AppCompatActivity is required")
 
         return activity as AppCompatActivity

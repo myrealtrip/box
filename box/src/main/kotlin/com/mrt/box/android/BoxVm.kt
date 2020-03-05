@@ -48,12 +48,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
             Box.log("Intent was not BoxEvent")
         }
 
-        linkedVms()?.let {
-            for (vm in it) {
-                vm.parentState = state
-                if (vm.isValidEvent(event)) {
-                    vm.intent(event)
-                }
+        linkedVms()?.forEach { vm ->
+            vm.parentState = state
+            if (vm.isValidEvent(event)) {
+                vm.intent(event)
             }
         }
         return output
@@ -61,7 +59,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     private fun model(event: E): BoxOutput<S, E, SE> {
         return bluePrint.reduce(stateInternal, event).also { output ->
-            Box.log("BoxVm found Event [$event]")
+            Box.log { "BoxVm found Event [$event]" }
             handleOutput(output)
         }
     }
@@ -96,7 +94,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     private fun doWork(
         output: BoxOutput.Valid<S, E, SE>,
-        toDo: (BoxOutput.Valid<S, E, SE>) -> Any?
+        toDo: LightWork<S, E, SE>
     ) {
         Box.log("Do in Foreground: ${output.sideEffect}")
         toDo(output).also {
@@ -107,7 +105,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     private fun doWorkInWorkThread(
         output: BoxOutput.Valid<S, E, SE>,
-        toDo: suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?
+        toDo: HeavyWork<S, E, SE>
     ) {
         Box.log("Do in Background: ${output.sideEffect}")
         workThread {
@@ -137,20 +135,19 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     @SuppressWarnings("unchecked")
     protected fun mainThread(block: () -> Unit) {
-        val job = launch {
+        handleJob(launch {
             block()
-        }
-        job.invokeOnCompletion {
-            jobs.remove(job)
-        }
-        jobs.add(job)
+        })
     }
 
     @SuppressWarnings("unchecked")
     protected fun workThread(block: suspend () -> Unit) {
-        val job = launch(Dispatchers.IO) {
+        handleJob(launch(Dispatchers.Default) {
             block()
-        }
+        })
+    }
+
+    private fun handleJob(job: Job) {
         job.invokeOnCompletion {
             jobs.remove(job)
         }

@@ -22,8 +22,8 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
         val list = (extraRenderer() ?: mutableListOf())
         renderer?.let {
             list.add(0, it)
-            list
-        } ?: list
+        }
+        list
     }
     abstract val renderer: BoxRenderer<S, E>?
 
@@ -51,7 +51,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
                 var isNeedSkipFirstEvent = channel.isEmpty.not()
                 for (inAppEvent in channel) {
                     if(isNeedSkipFirstEvent.not()) {
-                        Box.log("InAppEvent = $inAppEvent in ${this@BoxActivity}")
+                        Box.log { "InAppEvent = $inAppEvent in ${this@BoxActivity}" }
                         onSubscribe(inAppEvent)
                     } else
                         isNeedSkipFirstEvent = false
@@ -62,8 +62,8 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         viewInitializer?.onCleared()
+        super.onDestroy()
     }
 
     override fun render(state: S) {

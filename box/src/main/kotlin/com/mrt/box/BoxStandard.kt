@@ -15,15 +15,7 @@ fun <B : ViewDataBinding> ViewDataBinding?.be(): B {
 }
 
 fun <S : BoxState, E : BoxEvent, SE : BoxSideEffect> BoxVm<S, E, SE>.isValidEvent(event: Any) : Boolean {
-    if(event !is BoxEvent)
-        return false
-
-    try {
+    return kotlin.runCatching {
         event as E
-    } catch (e: Exception) {
-        Box.log(e)
-        return false
-    }
-
-    return true
+    }.isSuccess
 }

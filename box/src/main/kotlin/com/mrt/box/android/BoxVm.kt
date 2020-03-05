@@ -9,7 +9,10 @@ import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
 import com.mrt.box.core.*
 import com.mrt.box.isValidEvent
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 
@@ -45,7 +48,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         if (isValidEvent(event)) {
             output = model(event as E)
         } else {
-            Box.log("Intent was not BoxEvent")
+            Box.log { "Intent was not BoxEvent" }
         }
 
         linkedVms()?.forEach { vm ->
@@ -68,7 +71,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleOutput(output: BoxOutput<S, E, SE>) {
         when (output) {
             is BoxOutput.Valid -> {
-                Box.log("Event to be $output")
+                Box.log { "Event to be $output" }
                 stateInternal = output.to
                 view(stateInternal)
                 when (output.sideEffect) {
@@ -76,14 +79,14 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                     else -> handleSideEffect(output)
                 }
             }
-            else -> Box.log("Event to be nothing")
+            else -> Box.log { "Event to be nothing" }
         }
     }
 
     @SuppressWarnings("unchecked")
     fun handleSideEffect(output: BoxOutput.Valid<S, E, SE>) {
         val sideEffect = output.sideEffect
-        Box.log("Output has sideEffect $sideEffect")
+        Box.log { "Output has sideEffect $sideEffect" }
         bluePrint.workOrNull(sideEffect)?.let {
             doWork(output, it)
         }
@@ -96,9 +99,9 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         output: BoxOutput.Valid<S, E, SE>,
         toDo: LightWork<S, E, SE>
     ) {
-        Box.log("Do in Foreground: ${output.sideEffect}")
+        Box.log { "Do in Foreground: ${output.sideEffect}" }
         toDo(output).also {
-            Box.log("Result is $it for ${output.sideEffect}")
+            Box.log { "Result is $it for ${output.sideEffect}" }
             handleResult(it)
         }
     }
@@ -107,10 +110,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         output: BoxOutput.Valid<S, E, SE>,
         toDo: HeavyWork<S, E, SE>
     ) {
-        Box.log("Do in Background: ${output.sideEffect}")
+        Box.log { "Do in Background: ${output.sideEffect}" }
         workThread {
             toDo(output)?.await().also {
-                Box.log("Result is $it for ${output.sideEffect}")
+                Box.log { "Result is $it for ${output.sideEffect}" }
                 handleResult(it)
             }
         }
@@ -158,11 +161,11 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         when (view) {
             is LifecycleOwner -> {
                 currentState.observe(view, Observer {
-                    Box.log("View will view by $it")
+                    Box.log { "View will view by $it" }
                     view.render(it as S)
                 })
                 if (isInitialized.not()) {
-                    Box.log("Vm has initial state as ${bluePrint.initialState}")
+                    Box.log { "Vm has initial state as ${bluePrint.initialState}" }
                     view(bluePrint.initialState)
                     isInitialized = true
                 }

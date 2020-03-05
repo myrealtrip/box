@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import com.mrt.box.android.event.InAppEvent
 import com.mrt.box.android.event.event.BoxInAppEvent
 import com.mrt.box.core.*
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 
@@ -62,21 +63,24 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
                     isBound = true
                 }
                 it.launch {
-                    val channel = BoxInAppEvent.asChannel<InAppEvent>() // 하단은 fun
-                    var isNeedSkipFirstEvent = channel.isEmpty.not()
-                    for (inAppEvent in channel) {
-                        if (isNeedSkipFirstEvent.not()) {
-                            Box.log { "InAppEvent = $inAppEvent in ${this@BoxFragment}" }
-                            onSubscribe(inAppEvent)
-                        } else
-                            isNeedSkipFirstEvent = false
-                    }
+                    subscribe(BoxInAppEvent.asChannel())
                 }
             }
             viewInitializer?.initializeView(this, vm)
             binding?.root
         } else
             super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private suspend fun subscribe(channel: ReceiveChannel<InAppEvent>) {
+        var isNeedSkipFirstEvent = channel.isEmpty.not()
+        for (inAppEvent in channel) {
+            if (isNeedSkipFirstEvent.not()) {
+                Box.log { "InAppEvent = $inAppEvent in ${this@BoxFragment}" }
+                onSubscribe(inAppEvent)
+            } else
+                isNeedSkipFirstEvent = false
+        }
     }
 
     override fun setMenuVisibility(menuVisible: Boolean) {

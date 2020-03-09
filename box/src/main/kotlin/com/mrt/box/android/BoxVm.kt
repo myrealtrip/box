@@ -48,11 +48,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private val identifier = Job()
-    private val jobs = mutableListOf<Job>()
-
-    init {
-        Collections.synchronizedCollection(jobs)
-    }
+    private val jobs = Collections.synchronizedList(mutableListOf<Job>())
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier

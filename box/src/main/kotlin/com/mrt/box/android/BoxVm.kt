@@ -7,12 +7,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.core.*
+import com.mrt.box.core.BoxState
+import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxBlueprint
+import com.mrt.box.core.BoxOutput
+import com.mrt.box.core.Box
+import com.mrt.box.core.Vm
+import com.mrt.box.core.BoxVoidSideEffect
+import com.mrt.box.core.BoxSideEffect
+import com.mrt.box.core.HeavyWork
+import com.mrt.box.core.LightWork
 import com.mrt.box.isValidEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.Collections
 import kotlin.coroutines.CoroutineContext
 
 
@@ -39,6 +49,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     private val identifier = Job()
     private val jobs = mutableListOf<Job>()
+
+    init {
+        Collections.synchronizedCollection(jobs)
+    }
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier

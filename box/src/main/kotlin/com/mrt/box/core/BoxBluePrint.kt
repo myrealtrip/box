@@ -1,7 +1,6 @@
 package com.mrt.box.core
 
 import com.mrt.box.core.internal.BoxKey
-import kotlinx.coroutines.Deferred
 
 /**
  * Created by jaehochoe on 2020-01-01.
@@ -9,8 +8,8 @@ import kotlinx.coroutines.Deferred
 class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal constructor(
     val initialState: S,
     private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
-    private val heavyWorks: Map<BoxKey<SE, SE>, suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?>,
-    private val lightWorks: Map<BoxKey<SE, SE>, (BoxOutput.Valid<S, E, SE>) -> Any?>
+    private val heavyWorks: Map<BoxKey<SE, SE>, HeavyWork<S, E, SE>>,
+    private val lightWorks: Map<BoxKey<SE, SE>, LightWork<S, E, SE>>
 ) {
     fun reduce(state: S, event: E): BoxOutput<S, E, SE> {
         return synchronized(this) {
@@ -18,7 +17,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal cons
         }
     }
 
-    fun heavyWorkOrNull(sideEffect: SE): (suspend (BoxOutput.Valid<S, E, SE>) -> Deferred<Any?>?)? {
+    fun heavyWorkOrNull(sideEffect: SE): HeavyWork<S, E, SE>? {
         return synchronized(this) {
             heavyWorks
                 .filter { it.key.check(sideEffect) }
@@ -27,7 +26,7 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal cons
         }
     }
 
-    fun workOrNull(sideEffect: SE): ((BoxOutput.Valid<S, E, SE>) -> Any?)? {
+    fun workOrNull(sideEffect: SE): LightWork<S, E, SE>? {
         return synchronized(this) {
             lightWorks
                 .filter { it.key.check(sideEffect) }

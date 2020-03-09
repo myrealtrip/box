@@ -10,7 +10,12 @@ import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.mrt.box.android.event.InAppEvent
 import com.mrt.box.android.event.event.BoxInAppEvent
-import com.mrt.box.core.*
+import com.mrt.box.core.Box
+import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxSideEffect
+import com.mrt.box.core.BoxState
+import com.mrt.box.core.Vm
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 
@@ -18,7 +23,7 @@ import kotlinx.coroutines.launch
  * Created by jaehochoe on 2020-01-03.
  */
 abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fragment(),
-        BoxAndroidView<S, E> {
+    BoxAndroidView<S, E> {
 
     abstract val isNeedLazyLoading: Boolean
     private var isBound = false
@@ -27,8 +32,8 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
         val list = (extraRenderer() ?: mutableListOf())
         renderer?.let {
             list.add(0, it)
-            list
-        } ?: list
+        }
+        list
     }
 
     abstract val renderer: BoxRenderer<S, E>?
@@ -46,33 +51,40 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     open fun preOnCreateView(savedInstanceState: Bundle?) {
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         preOnCreateView(savedInstanceState)
         return if (layout > 0) {
             bindingTemp = DataBindingUtil.inflate(inflater, layout, container, false)
             binding?.lifecycleOwner = this
             vm?.let {
                 bindingVm(binding, it)
-                if(isNeedLazyLoading.not()) {
+                if (isNeedLazyLoading.not()) {
                     it?.bind(this@BoxFragment)
                     isBound = true
                 }
                 it.launch {
-                    val channel = BoxInAppEvent.asChannel<InAppEvent>()
-                    var isNeedSkipFirstEvent = channel.isEmpty.not()
-                    for (inAppEvent in channel) {
-                        if(isNeedSkipFirstEvent.not()) {
-                            Box.log("InAppEvent = $inAppEvent in ${this@BoxFragment}")
-                            onSubscribe(inAppEvent)
-                        } else
-                            isNeedSkipFirstEvent = false
-                    }
+                    subscribe(BoxInAppEvent.asChannel())
                 }
             }
             viewInitializer?.initializeView(this, vm)
             binding?.root
         } else
             super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private suspend fun subscribe(channel: ReceiveChannel<InAppEvent>) {
+        var isNeedSkipFirstEvent = channel.isEmpty.not()
+        for (inAppEvent in channel) {
+            if (isNeedSkipFirstEvent.not()) {
+                Box.log { "InAppEvent = $inAppEvent in ${this@BoxFragment}" }
+                onSubscribe(inAppEvent)
+            } else
+                isNeedSkipFirstEvent = false
+        }
     }
 
     override fun setMenuVisibility(menuVisible: Boolean) {
@@ -84,7 +96,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     override fun render(state: S) {
-        for (renderer in rendererList) {
+        rendererList.forEach { renderer ->
             renderer.render(this, state, vm)
         }
     }
@@ -99,7 +111,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     override fun activity(): AppCompatActivity {
-        if(activity !is AppCompatActivity)
+        if (activity !is AppCompatActivity)
             error("AppCompatActivity is required")
 
         return activity as AppCompatActivity

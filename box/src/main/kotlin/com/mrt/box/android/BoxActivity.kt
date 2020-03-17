@@ -71,7 +71,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     }
 
     override fun render(state: S) {
-        for (renderer in rendererList) {
+        rendererList.forEach { renderer ->
             renderer.render(this, state, vm)
         }
     }

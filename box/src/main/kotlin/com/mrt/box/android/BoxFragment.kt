@@ -14,7 +14,6 @@ import com.mrt.box.core.Box
 import com.mrt.box.core.BoxEvent
 import com.mrt.box.core.BoxSideEffect
 import com.mrt.box.core.BoxState
-import com.mrt.box.core.Vm
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
@@ -42,8 +41,6 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
     abstract val vm: BoxVm<S, E, SE>?
 
-    abstract fun <B : ViewDataBinding, VM : Vm> bindingVm(b: B?, vm: VM)
-
     private lateinit var bindingTemp: ViewDataBinding
 
     override val binding: ViewDataBinding? by lazyOf(bindingTemp)
@@ -61,11 +58,10 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
             bindingTemp = DataBindingUtil.inflate(inflater, layout, container, false)
             binding?.lifecycleOwner = this
             vm?.let {
-                bindingVm(binding, it)
                 if (isNeedLazyLoading.not()) {
-                    it?.bind(this@BoxFragment)
-                    isBound = true
+                    bindingVm()
                 }
+                viewInitializer?.bindingVm(binding, it)
                 it.launch {
                     subscribe(BoxInAppEvent.asChannel())
                 }
@@ -74,6 +70,11 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
             binding?.root
         } else
             super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    override fun onDestroy() {
+        viewInitializer?.onCleared()
+        super.onDestroy()
     }
 
     private suspend fun subscribe(channel: ReceiveChannel<InAppEvent>) {
@@ -90,10 +91,18 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     override fun setMenuVisibility(menuVisible: Boolean) {
         super.setMenuVisibility(menuVisible)
         if (menuVisible && isNeedLazyLoading && !isBound) {
-            vm?.bind(this)
+            bindingVm()
+        }
+    }
+
+    private fun bindingVm() {
+        vm?.let {
+            it?.bind(this@BoxFragment)
+            viewInitializer?.bindingVm(binding, it)
             isBound = true
         }
     }
+
 
     override fun render(state: S) {
         rendererList.forEach { renderer ->

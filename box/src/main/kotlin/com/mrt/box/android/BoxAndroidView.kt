@@ -2,6 +2,7 @@ package com.mrt.box.android
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import com.mrt.box.core.BoxEvent
 import com.mrt.box.core.BoxState
 import com.mrt.box.core.BoxView
@@ -16,6 +17,8 @@ interface BoxAndroidView<S : BoxState, E : BoxEvent> : BoxView<S, E> {
     val layout: Int
 
     open fun activity(): AppCompatActivity
+
+    open fun fragment(): Fragment
 
     fun <B : ViewDataBinding> binding(): B {
         return binding.be()

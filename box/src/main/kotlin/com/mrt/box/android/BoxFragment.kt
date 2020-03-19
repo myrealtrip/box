@@ -105,6 +105,10 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxWork> : Fragment(
         return activity as AppCompatActivity
     }
 
+    override fun fragment(): Fragment {
+        return this
+    }
+
     private fun onSubscribe(inAppEvent: InAppEvent) {
         vm?.onSubscribe(inAppEvent)
     }

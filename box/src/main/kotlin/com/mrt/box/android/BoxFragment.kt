@@ -41,7 +41,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
     abstract val vm: BoxVm<S, E, SE>?
 
-    private lateinit var bindingTemp: ViewDataBinding
+    private var bindingTemp: ViewDataBinding? = null
 
     override val binding: ViewDataBinding? by lazyOf(bindingTemp)
 

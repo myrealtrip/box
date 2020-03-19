@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import com.mrt.box.android.event.InAppEvent
 import com.mrt.box.android.event.event.BoxInAppEvent
 import com.mrt.box.core.Box
@@ -101,5 +102,9 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
 
     private fun onSubscribe(inAppEvent: InAppEvent) {
         vm?.onSubscribe(inAppEvent)
+    }
+
+    override fun fragment(): Fragment {
+        throw NullPointerException()
     }
 }

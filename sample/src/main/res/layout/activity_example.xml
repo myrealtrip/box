@@ -16,7 +16,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        tools:context=".ExampleActivity">
 
         <TextView
             android:id="@+id/label"
@@ -25,7 +25,7 @@
             android:text="@{String.valueOf(count)}"
             android:clickable="true"
             android:textSize="80sp"
-            android:onClick="@{(v) -> vm.intent(com.mrt.box.sample.MainEvent.OnClick.INSTANCE)}"
+            android:onClick="@{(v) -> vm.intent(com.mrt.box.sample.ExampleEvent.OnClick.INSTANCE)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="auto count up"
-            android:onClick="@{(v) -> vm.intent(com.mrt.box.sample.MainEvent.OnClickLayout.INSTANCE)}"
+            android:onClick="@{(v) -> vm.intent(com.mrt.box.sample.ExampleEvent.OnClickLayout.INSTANCE)}"
             app:layout_constraintStart_toStartOf="@id/label"
             app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="finish"
-            android:onClick="@{(v) -> vm.intent(&quot;com.mrt.box.sample.MainEvent$OnClickFinish&quot;, ((android.app.Activity)context))}"
+            android:onClick="@{(v) -> vm.intent(&quot;com.mrt.box.sample.ExampleEvent$OnClickFinish&quot;, ((android.app.Activity)context))}"
             app:layout_constraintEnd_toStartOf="@id/btn1"
             app:layout_constraintBottom_toBottomOf="parent" />
 

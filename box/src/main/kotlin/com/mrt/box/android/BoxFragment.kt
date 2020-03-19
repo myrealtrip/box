@@ -43,7 +43,9 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
     private var bindingTemp: ViewDataBinding? = null
 
-    override val binding: ViewDataBinding? by lazyOf(bindingTemp)
+    override val binding: ViewDataBinding? by lazy {
+        bindingTemp
+    }
 
     open fun preOnCreateView(savedInstanceState: Bundle?) {
     }

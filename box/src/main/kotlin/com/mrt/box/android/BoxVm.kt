@@ -94,6 +94,9 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         bluePrint.heavyWorkOrNull(sideEffect)?.let {
             doWorkInBackgroundThread(output, it)
         }
+        bluePrint.ioWorkOrNull(sideEffect)?.let {
+            doWorkInIOThread(output, it)
+        }
     }
 
     private fun doWork(

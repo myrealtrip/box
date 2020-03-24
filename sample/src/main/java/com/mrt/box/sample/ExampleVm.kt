@@ -35,8 +35,8 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
                 to(copy(count = 0))
             }
 
-            seOnBackground<ExampleSideEffect.AutoCountUp> {
-                return@seOnBackground autoCountUpAsync(it.sideEffect.count)
+            background<ExampleSideEffect.AutoCountUp> {
+                return@background autoCountUpAsync(it.sideEffect.count)
             }
         }
 

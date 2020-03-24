@@ -8,12 +8,22 @@ import com.mrt.box.core.internal.BoxKey
 class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal constructor(
     val initialState: S,
     private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
+    private val ioWorks: Map<BoxKey<SE, SE>, IOWork<S, E, SE>>,
     private val heavyWorks: Map<BoxKey<SE, SE>, HeavyWork<S, E, SE>>,
     private val lightWorks: Map<BoxKey<SE, SE>, LightWork<S, E, SE>>
 ) {
     fun reduce(state: S, event: E): BoxOutput<S, E, SE> {
         return synchronized(this) {
             state.toOutput(event)
+        }
+    }
+
+    fun ioWorkOrNull(sideEffect: SE): IOWork<S, E, SE>? {
+        return synchronized(this) {
+            ioWorks
+                .filter { it.key.check(sideEffect) }
+                .map { it.value }
+                .firstOrNull()
         }
     }
 

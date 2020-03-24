@@ -7,16 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.core.BoxState
-import com.mrt.box.core.BoxEvent
-import com.mrt.box.core.BoxBlueprint
-import com.mrt.box.core.BoxOutput
-import com.mrt.box.core.Box
-import com.mrt.box.core.Vm
-import com.mrt.box.core.BoxVoidSideEffect
-import com.mrt.box.core.BoxSideEffect
-import com.mrt.box.core.HeavyWork
-import com.mrt.box.core.LightWork
+import com.mrt.box.core.*
 import com.mrt.box.isValidEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +92,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
             doWork(output, it)
         }
         bluePrint.heavyWorkOrNull(sideEffect)?.let {
-            doWorkInWorkThread(output, it)
+            doWorkInBackgroundThread(output, it)
         }
     }
 
@@ -116,12 +107,25 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         }
     }
 
-    private fun doWorkInWorkThread(
+    private fun doWorkInBackgroundThread(
         output: BoxOutput.Valid<S, E, SE>,
         toDo: HeavyWork<S, E, SE>
     ) {
         Box.log { "Do in Background: ${output.sideEffect}" }
         workThread {
+            toDo(output)?.await().also {
+                Box.log { "Result is $it for ${output.sideEffect}" }
+                handleResult(it)
+            }
+        }
+    }
+
+    private fun doWorkInIOThread(
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: IOWork<S, E, SE>
+    ) {
+        Box.log { "Do in IO: ${output.sideEffect}" }
+        ioThread {
             toDo(output)?.await().also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
                 handleResult(it)
@@ -156,6 +160,13 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     @SuppressWarnings("unchecked")
     protected fun workThread(block: suspend () -> Unit) {
         handleJob(launch(Dispatchers.Default) {
+            block()
+        })
+    }
+
+    @SuppressWarnings("unchecked")
+    protected fun ioThread(block: suspend () -> Unit) {
+        handleJob(launch(Dispatchers.IO) {
             block()
         })
     }

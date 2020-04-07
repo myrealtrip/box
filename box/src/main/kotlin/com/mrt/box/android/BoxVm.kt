@@ -20,8 +20,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
-    Vm {
+abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope, Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
@@ -190,7 +189,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                     Box.log { "View will view by $it" }
                     view.render(it as S)
                 })
-                if (isInitialized.not()) {
+                if (isInitialized.not() && isSkipInitialState().not()) {
                     Box.log { "Vm has initial state as ${bluePrint.initialState}" }
                     view(bluePrint.initialState)
                     isInitialized = true
@@ -229,5 +228,9 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     open fun linkedVms(): Array<BoxVm<BoxState, BoxEvent, BoxSideEffect>>? {
         return null
+    }
+
+    open fun isSkipInitialState() : Boolean {
+        return false
     }
 }

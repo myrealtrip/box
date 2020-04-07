@@ -60,7 +60,6 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
             bindingTemp = DataBindingUtil.inflate(inflater, layout, container, false)
             binding?.lifecycleOwner = this
             vm?.let {
-                it?.bind(this@BoxFragment)
                 if (isNeedLazyLoading.not()) {
                     bindingVm()
                 }
@@ -69,7 +68,6 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
                     subscribe(BoxInAppEvent.asChannel())
                 }
             }
-            viewInitializer?.initializeView(this, vm)
             binding?.root
         } else
             super.onCreateView(inflater, container, savedInstanceState)
@@ -101,6 +99,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     private fun bindingVm() {
         vm?.let {
             viewInitializer?.bindingVm(binding, it)
+            it?.bind(this@BoxFragment)
             isBound = true
         }
     }

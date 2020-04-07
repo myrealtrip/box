@@ -140,8 +140,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                this.stateInternal = result as S
-                mainThread { view(this.stateInternal) }
+                if(this.state != result) {
+                    this.stateInternal = result as S
+                    mainThread { view(this.stateInternal) }
+                }
             }
             is BoxEvent -> {
                 mainThread { intent(result as E) }

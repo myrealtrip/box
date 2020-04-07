@@ -63,7 +63,6 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
                 if (isNeedLazyLoading.not()) {
                     bindingVm()
                 }
-                viewInitializer?.bindingVm(binding, it)
                 it.launch {
                     subscribe(BoxInAppEvent.asChannel())
                 }
@@ -82,7 +81,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
         var isNeedSkipFirstEvent = channel.isEmpty.not()
         for (inAppEvent in channel) {
             if (isNeedSkipFirstEvent.not()) {
-                Box.log { "InAppEvent = $inAppEvent in ${this@BoxFragment}" }
+                Box.log { "InAppEvent = $inAppEvent in $this" }
                 onSubscribe(inAppEvent)
             } else
                 isNeedSkipFirstEvent = false
@@ -98,8 +97,9 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
     private fun bindingVm() {
         vm?.let {
+            viewInitializer?.initializeView(this, vm)
             viewInitializer?.bindingVm(binding, it)
-            it?.bind(this@BoxFragment)
+            it.bind(this)
             isBound = true
         }
     }

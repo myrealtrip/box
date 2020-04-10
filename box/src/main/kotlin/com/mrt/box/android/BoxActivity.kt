@@ -7,7 +7,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.android.event.event.BoxInAppEvent
 import com.mrt.box.core.Box
 import com.mrt.box.core.BoxEvent
 import com.mrt.box.core.BoxSideEffect

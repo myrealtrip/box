@@ -12,6 +12,7 @@ import com.mrt.box.core.Box
 import com.mrt.box.core.BoxEvent
 import com.mrt.box.core.BoxSideEffect
 import com.mrt.box.core.BoxState
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
@@ -68,6 +69,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
 
     override fun onDestroy() {
         viewInitializer?.onCleared()
+        vm?.cancel()
         super.onDestroy()
     }
 

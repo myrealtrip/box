@@ -13,14 +13,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.Collections
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope, Vm {
+abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
+    Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
@@ -72,8 +73,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         when (output) {
             is BoxOutput.Valid -> {
                 Box.log { "Event to be $output" }
-                stateInternal = output.to
-                view(stateInternal)
+                if (stateInternal != output.to) {
+                    stateInternal = output.to
+                    view(stateInternal)
+                }
                 when (output.sideEffect) {
                     null, is BoxVoidSideEffect -> return
                     else -> handleSideEffect(output)
@@ -139,7 +142,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                if(this.state != result) {
+                if (this.state != result) {
                     this.stateInternal = result as S
                     mainThread { view(this.stateInternal) }
                 }
@@ -230,7 +233,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         return null
     }
 
-    open fun isSkipInitialState() : Boolean {
+    open fun isSkipInitialState(): Boolean {
         return false
     }
 }

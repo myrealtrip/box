@@ -107,6 +107,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
 
     override fun render(state: S) {
+        viewInitializer?.pendingState = state
         rendererList.forEach { renderer ->
             renderer.render(this, state, vm)
         }

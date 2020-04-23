@@ -59,7 +59,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
         var isNeedSkipFirstEvent = channel.isEmpty.not()
         for (inAppEvent in channel) {
             if (isNeedSkipFirstEvent.not()) {
-                Box.log { "InAppEvent = $inAppEvent in ${this@BoxActivity}" }
+                Box.log { "InAppEvent = $inAppEvent in $this" }
                 onSubscribe(inAppEvent)
             } else
                 isNeedSkipFirstEvent = false
@@ -73,6 +73,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     }
 
     override fun render(state: S) {
+        viewInitializer?.pendingState = state
         rendererList.forEach { renderer ->
             renderer.render(this, state, vm)
         }

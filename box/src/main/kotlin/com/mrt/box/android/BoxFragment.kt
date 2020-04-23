@@ -136,4 +136,8 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     private fun onSubscribe(inAppEvent: InAppEvent) {
         vm?.onSubscribe(inAppEvent)
     }
+
+    override fun pendingState(): S? {
+        return vm?.currentState?.value
+    }
 }

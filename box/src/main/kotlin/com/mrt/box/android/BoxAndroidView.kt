@@ -23,4 +23,6 @@ interface BoxAndroidView<S : BoxState, E : BoxEvent> : BoxView<S, E> {
     fun <B : ViewDataBinding> binding(): B {
         return binding.be()
     }
+
+    fun pendingState(): S?
 }

@@ -109,4 +109,8 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     override fun fragment(): Fragment {
         throw NullPointerException()
     }
+
+    override fun pendingState(): S? {
+        return vm?.currentState?.value
+    }
 }

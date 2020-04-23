@@ -9,8 +9,7 @@ import com.mrt.box.core.Vm
  * Created by jaehochoe on 2020-01-03.
  */
 interface BoxViewInitializer<S : BoxState, E : BoxEvent> {
-    var pendingState: S
     fun initializeView(v: BoxAndroidView<S, E>, vm: Vm?)
     fun <B : ViewDataBinding, VM : Vm> bindingVm(b: B?, vm: VM)
-    fun onCleared() {}
+    fun onCleared()
 }

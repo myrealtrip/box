@@ -17,4 +17,8 @@ object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
 
     override fun initializeView(v: BoxAndroidView<ExampleState, ExampleEvent>, vm: Vm?) {
     }
+
+    override fun onCleared() {
+        
+    }
 }

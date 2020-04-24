@@ -7,13 +7,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.core.*
+import com.mrt.box.core.Box
+import com.mrt.box.core.BoxBlueprint
+import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxOutput
+import com.mrt.box.core.BoxSideEffect
+import com.mrt.box.core.BoxState
+import com.mrt.box.core.BoxVoidSideEffect
+import com.mrt.box.core.HeavyWork
+import com.mrt.box.core.IOWork
+import com.mrt.box.core.LightWork
+import com.mrt.box.core.Vm
 import com.mrt.box.isValidEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -39,7 +48,6 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private val identifier = Job()
-    private val jobs = Collections.synchronizedList(mutableListOf<Job>())
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + identifier
@@ -155,30 +163,23 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     @SuppressWarnings("unchecked")
     protected fun mainThread(block: () -> Unit) {
-        handleJob(launch {
+        launch {
             block()
-        })
+        }
     }
 
     @SuppressWarnings("unchecked")
     protected fun workThread(block: suspend () -> Unit) {
-        handleJob(launch(Dispatchers.Default) {
+        launch(Dispatchers.Default) {
             block()
-        })
+        }
     }
 
     @SuppressWarnings("unchecked")
     protected fun ioThread(block: suspend () -> Unit) {
-        handleJob(launch(Dispatchers.IO) {
+        launch(Dispatchers.IO) {
             block()
-        })
-    }
-
-    private fun handleJob(job: Job) {
-        job.invokeOnCompletion {
-            jobs.remove(job)
         }
-        jobs.add(job)
     }
 
     fun <V : BoxAndroidView<S, E>> bind(view: V) {
@@ -200,9 +201,6 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     override fun onCleared() {
         super.onCleared()
         identifier.cancel()
-        jobs.forEach { job ->
-            job.cancel()
-        }
     }
 
     open fun onActivityResult(

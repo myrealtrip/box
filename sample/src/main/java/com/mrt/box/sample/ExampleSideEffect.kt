@@ -1,5 +1,6 @@
 package com.mrt.box.sample
 
+import android.app.Activity
 import com.mrt.box.core.BoxSideEffect
 
 /**
@@ -7,5 +8,5 @@ import com.mrt.box.core.BoxSideEffect
  */
 sealed class ExampleSideEffect : BoxSideEffect {
     data class AutoCountUp(val count: Int) : ExampleSideEffect()
-    data class Finish(val action: () -> Unit) : ExampleSideEffect()
+    data class Finish(val activity: Activity) : ExampleSideEffect()
 }

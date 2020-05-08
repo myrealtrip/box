@@ -1,4 +1,5 @@
-import com.mrt.box.android.event.InAppEvent
+package com.mrt.box.android.event
+
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel

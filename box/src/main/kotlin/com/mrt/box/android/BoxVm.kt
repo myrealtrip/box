@@ -83,12 +83,12 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                 Box.log { "Event to be $output" }
                 stateInternal = output.to
                 view(output.to)
-                output.to.consumer()?.let {
-                    stateInternal = it as S
-                }
                 when (output.sideEffect) {
                     null, is BoxVoidSideEffect -> return
                     else -> handleSideEffect(output)
+                }
+                output.to.consumer()?.let {
+                    stateInternal = it as S
                 }
             }
             else -> Box.log { "Event to be nothing" }

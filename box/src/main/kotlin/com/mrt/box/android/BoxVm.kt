@@ -81,6 +81,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         when (output) {
             is BoxOutput.Valid -> {
                 Box.log { "Event to be $output" }
+                stateInternal = output.to
                 view(output.to)
                 stateInternal = output.to.consumer() as S
                 when (output.sideEffect) {
@@ -148,7 +149,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                mainThread { view(result as S) }
+                this.stateInternal = result as S
+                mainThread { view(result) }
                 this.stateInternal = result.consumer() as S
             }
             is BoxEvent -> {

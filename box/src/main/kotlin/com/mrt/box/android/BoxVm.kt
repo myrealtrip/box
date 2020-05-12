@@ -86,10 +86,11 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                     stateInternal = output.to
                     view(output.to)
                 }
-                when (output.sideEffect) {
-                    null, is BoxVoidSideEffect -> return
-                    else -> handleSideEffect(output)
+
+                if(output.sideEffect != null && output.sideEffect !is BoxVoidSideEffect) {
+                    handleSideEffect(output)
                 }
+
                 ((if(output.to is BoxVoidState) stateInternal.consumer() else output.to.consumer()) as? S)?.let { newState ->
                     stateInternal = newState
                 }

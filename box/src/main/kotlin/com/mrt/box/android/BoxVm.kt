@@ -14,6 +14,7 @@ import com.mrt.box.core.BoxOutput
 import com.mrt.box.core.BoxSideEffect
 import com.mrt.box.core.BoxState
 import com.mrt.box.core.BoxVoidSideEffect
+import com.mrt.box.core.BoxVoidState
 import com.mrt.box.core.HeavyWork
 import com.mrt.box.core.IOWork
 import com.mrt.box.core.LightWork
@@ -81,14 +82,18 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         when (output) {
             is BoxOutput.Valid -> {
                 Box.log { "Event to be $output" }
-                stateInternal = output.to
-                view(output.to)
+                if(output.to !is BoxVoidState) {
+                    stateInternal = output.to
+                    view(output.to)
+                }
                 when (output.sideEffect) {
                     null, is BoxVoidSideEffect -> return
                     else -> handleSideEffect(output)
                 }
-                output.to.consumer()?.let {
-                    stateInternal = it as S
+                if(output.to !is BoxVoidState) {
+                    (output.to.consumer() as? S)?.let { state ->
+                        stateInternal = state
+                    }
                 }
             }
             else -> Box.log { "Event to be nothing" }
@@ -151,10 +156,12 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                this.stateInternal = result as S
-                mainThread { view(result) }
-                result.consumer()?.let {
-                    this.stateInternal = it as S
+                if(result !is BoxVoidState) {
+                    this.stateInternal = result as S
+                    mainThread { view(result) }
+                    (result.consumer() as? S)?.let { state ->
+                        this.stateInternal = state
+                    }
                 }
             }
             is BoxEvent -> {

@@ -90,10 +90,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                     null, is BoxVoidSideEffect -> return
                     else -> handleSideEffect(output)
                 }
-                if(output.to !is BoxVoidState) {
-                    (output.to.consumer() as? S)?.let { state ->
-                        stateInternal = state
-                    }
+                ((if(output.to is BoxVoidState) stateInternal.consumer() else output.to.consumer()) as? S)?.let { newState ->
+                    stateInternal = newState
                 }
             }
             else -> Box.log { "Event to be nothing" }
@@ -159,8 +157,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                 if(result !is BoxVoidState) {
                     this.stateInternal = result as S
                     mainThread { view(result) }
-                    (result.consumer() as? S)?.let { state ->
-                        this.stateInternal = state
+                    result.consumer()?.let {
+                        this.stateInternal = it as S
                     }
                 }
             }

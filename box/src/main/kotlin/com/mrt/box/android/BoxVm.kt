@@ -148,8 +148,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                this.stateInternal = result as S
-                mainThread { view(this.stateInternal) }
+                mainThread { view(result as S) }
+                this.stateInternal = result.consumer() as S
             }
             is BoxEvent -> {
                 mainThread { intent(result as E) }
@@ -187,7 +187,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
             is LifecycleOwner -> {
                 currentState.observe(view, Observer {
                     Box.log { "View will view by $it" }
-                    view.render(it as S)
+                    view.render(it)
                 })
                 if (isInitialized.not() && isSkipInitialState().not()) {
                     Box.log { "Vm has initial state as ${bluePrint.initialState}" }

@@ -207,6 +207,8 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 
    View는 `BoxActivity` 또는 `BoxFragment` 를 구현합니다. 이 예제에서는 `BoxActivity` 를 사용합니다. 아래 코드를 봐주세요.
 
+   
+
    ```kotlin
    class ExampleActivity
        : BoxActivity<ExampleState, ExampleEvent, ExampleSideEffect>() {
@@ -224,15 +226,19 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
    }
    ```
 
+   
+
    - Vm과 마찬가지로 BoxActivity도 해당 화면에서 취급할 State와 Event, SideEffect를 정의해야 합니다.
 
    - 화면에서 사용할 Vm을 정의합니다. BoxVm은 `AndroidViewModel` 을  사용하고 있어서 `ViewModelProviders.of().get()` 을 사용하여 선언 할 수 있습니다. 또는 dagger2 등 DI를 통하여 선언하는 것도 가능합니다.
 
    - View (`BoxActivity`/`BoxFragment`) 가 초기화 될때 1회 호출되는 `BoxViewInitializer` 를 정의합니다. `BoxViewInitializer`는 `BoxActivity`의 경우 `onCreate()` 시점에, `BoxFragment`의 경우 `onCreateView()` 시점에 호출됩니다. 초기화가 필요 없는 간단한 화면의 경우 생략할 수 있습니다. 이 예제에서는 화면에 진입하면 서버 데이터 조회를 수행하려고 합니다. 따라서 아래와 같은 형태로 구현할 수 있습니다.
-   
+
+     
+
 
      ```kotlin
-    object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
+     object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
          override fun <B : ViewDataBinding, VM : Vm> bindingVm(b: B?, vm: VM) {
              b.be<ActivityExampleBinding>().vm = vm
          }
@@ -247,13 +253,18 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
          }
      }
      ```
+
    
-   
+
+
      - xml에서 전달 받은 vm을 통하여 새로운 Event를 `intent()` 할 수 있도록 `bindingVm()`함수를 오버라이딩 하여  `vm` 값을 전달합니다.
+
      - `initializeView()` 에서 필요할 경우 뷰 초기화를 수행하고 (예: RecyclerView의 Adapter 설정 등) 최초 실행할 Event를 `vm.intent()` 를 통해 전달합니다.
-   
+
    - 새로운 State가 발생했을때 View를 랜더링할 `BoxRenderer` 를 정의합니다. `Renderer` 의 구현은 다음 코드를 참고해주세요.
-   
+
+     
+
      ``` kotlin
      object ExampleRenderer : BoxRenderer<ExampleState, ExampleEvent> {
          override fun render(v: BoxAndroidView<ExampleState, ExampleEvent>, s: ExampleState, vm: Vm?) {
@@ -264,9 +275,13 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
          }
      }
      ```
+
      
+
      - Renderer는 화면을 그릴 `View`, 화면에 그려야하는 `State`, 그리고 새로운 `Event`를 전달할 `Vm`을 인자로 넘겨 받습니다. 이 예제의 경우 바인딩된 레이아웃에 State의 값을 넘기는 역할만 수행합니다. State에 따른 View 분기 처리는 레이아웃의 데이터 바인딩 기능을 통해 아래와 같은 형태로 그려집니다. 
-     
+
+       
+
      ```xml
      <?xml version="1.0" encoding="utf-8"?>
      <layout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -317,9 +332,11 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
          </FrameLayout>
      </layout>
      ```
+
      
+
      - xml은 `Renderer`를 통해 전달 받은 데이터를 이용하여 View를 그립니다. 위 예제의 경우 `onProgress` 값을 사용하여 `ProgressBar` 를 표시하고, `onError` 데이터가 있을 경우 에러 페이지를 처리합니다. `onProgress`와 `onError` 값이 없으며 `data` 가 존재할 경우 `data.name` 을 `TextView` 에 표시하고 `TextView` 를 사용자가 탭했을 경우 `ExampleEvent.OnDataClick` 이벤트를 발생시켜 화면을 `Vm` 이 화면을 전환하도록 합니다.
-     
+
      
 
 #### 디버깅
@@ -385,7 +402,11 @@ abstract class VmTest<S : BoxState, E : BoxEvent, SE : BoxSideEffect> {
 }
 ```
 
+
+
 위 테스트 클래스를 확장하여 `ExampleVm`의 테스트 코드를 작성하면 아래와 같은 형태가 됩니다.
+
+
 
 ```kotlin
 class ExampleVmTest : VmTest<ExampleState, ExampleEvent, ExampleSideEffect>() {

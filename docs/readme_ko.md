@@ -229,9 +229,10 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
    - 화면에서 사용할 Vm을 정의합니다. BoxVm은 `AndroidViewModel` 을  사용하고 있어서 `ViewModelProviders.of().get()` 을 사용하여 선언 할 수 있습니다. 또는 dagger2 등 DI를 통하여 선언하는 것도 가능합니다.
 
    - View (`BoxActivity`/`BoxFragment`) 가 초기화 될때 1회 호출되는 `BoxViewInitializer` 를 정의합니다. `BoxViewInitializer`는 `BoxActivity`의 경우 `onCreate()` 시점에, `BoxFragment`의 경우 `onCreateView()` 시점에 호출됩니다. 초기화가 필요 없는 간단한 화면의 경우 생략할 수 있습니다. 이 예제에서는 화면에 진입하면 서버 데이터 조회를 수행하려고 합니다. 따라서 아래와 같은 형태로 구현할 수 있습니다.
+   
 
      ```kotlin
-  object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
+    object ExampleInitView : BoxViewInitializer<ExampleState, ExampleEvent> {
          override fun <B : ViewDataBinding, VM : Vm> bindingVm(b: B?, vm: VM) {
              b.be<ActivityExampleBinding>().vm = vm
          }
@@ -246,6 +247,7 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
          }
      }
      ```
+   
    
      - xml에서 전달 받은 vm을 통하여 새로운 Event를 `intent()` 할 수 있도록 `bindingVm()`함수를 오버라이딩 하여  `vm` 값을 전달합니다.
      - `initializeView()` 에서 필요할 경우 뷰 초기화를 수행하고 (예: RecyclerView의 Adapter 설정 등) 최초 실행할 Event를 `vm.intent()` 를 통해 전달합니다.

@@ -175,9 +175,9 @@ Blueprint에는 Event가 발생했을때 어떤 State가 생성되고 어떤 Sid
    }
 ```
 
-   - `Vm`은 해당 `Vm` 에서 처리할 State와 Event, SideEffect를 제네릭으로 선언합니다. 
+- `Vm`은 해당 `Vm` 에서 처리할 State와 Event, SideEffect를 제네릭으로 선언합니다. 
 
-   - `Vm` 의 Blueprint는 Vm의 `bluePrint()` 함수로 정의합니다. 이때 테스트 코드 작성의 편의를 위해 Vm 외부에 Vm의 확장 함수 형태로 정의하는 방법을 권장합니다. Blueprint의 코드는 아래를 참고하세요.
+- `Vm` 의 Blueprint는 Vm의 `bluePrint()` 함수로 정의합니다. 이때 테스트 코드 작성의 편의를 위해 Vm 외부에 Vm의 확장 함수 형태로 정의하는 방법을 권장합니다. Blueprint의 코드는 아래를 참고하세요.
  
  
 ```kotlin
@@ -209,7 +209,7 @@ Blueprint에는 Event가 발생했을때 어떤 State가 생성되고 어떤 Sid
 
 ```
 
-   - ExampleVm의 `bluePrint()` 코드를 살펴보면 아래와 같습니다.
+- ExampleVm의 `bluePrint()` 코드를 살펴보면 아래와 같습니다.
 
      - `ExampleEvent.ReqeustData` 이벤트가 발생했을때 새로운 `ExampleState`는 이전 State를 카피하여 만들되 `onProgress` 상태를 true로 설정합니다. 동시에 SideEffect인 `ExampleSideEffect.RequestData` 를 발생시킵니다.
      - `ExampleSideEffect.RequestData` 가 발생했을때는 `Dispatchers.Default` 를 통해 `requestDataAsync()` 함수를 호출합니다. `requestDataAsync()` 의 결과 값은 Event로 함수가 종료되고 각각의 Event를 발생시킵니다. 

@@ -73,6 +73,31 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 3. `BoxSideEffect`: `Vm`의 `BoxBlueprint`에 정의되어 있는 규칙에 따라 필요할 경우 수행되어야 할 SideEffect입니다. SideEffect는 MVI 일반적 사이클에서 벗어나는 액션들 즉, 액티비티 이동, 서버 통신, 다이얼로그 노출, 복잡한 백그라운드 작업 등을 수행합니다. SideEffect의 수행 결과가 `BoxEvent`일 경우에는 `Vm`의 `intent`함수로 전달되어 다시 새로운 사이클을 시작합니다.
 
 
+#### Blueprint
+
+Blueprint에는 Event가 발생했을때 어떤 State가 생성되고 어떤 SideEffect가 발생해야 하는지와 SideEffect는 어떤 동작을 수행하는지에 대한 명세를 정의합니다. 
+
+1. `on()` 함수로 Event 정의
+
+![how to work on() function](images/box-func-on.png)
+
+- `on()` 함수는 정의할 Event를 제네렉 형태로 선언합니다.  
+- `on()` 함수의 코드 블록은 현재 State를 `this` 로, 전달 될 Event를 `it` 으로 받습니다. 
+- `on()` 함수는 `to()` 함수 구현으로 이 Event가 어떤 State로 변할지 또는 어떤 SideEffect가 발생해야 하는지 정의합니다. 
+- `to()` 함수는 새로 생성될 Event만 갖을 수도 있고 발생할 SideEffect만 갖을 수도 있습니다. 때론은 두 개의 값을 다 정의할 수도 있고 두개의 값을 다 갖지 않을 수도 있습니다. 두개의 값을 다 갖지 않을때는 아무런 동작을 하지 않습니다.
+
+
+2.SideEffect 정의
+
+![how to work sideeffect function](images/box-func-sideeffect.png)
+
+- SideEffect는 해당 SideEffect가 동작할 `Dispatchers` 에 따라서 3가지 함수로 선언할 수 있습니다.
+	- `Dispatchers.Main`: Main Thread에서 동작할 SideEffect를 정의합니다. 다이얼로그나 팝업을 노출하거나 화면을 전환하는 등 이벤트를 처리하기에 적합합니다. `main()` 함수로 정의합니다.. 
+	- `Dispatchers.Default`: Worker Thread 동작하기를 기대하는 SideEffect를 정의 합니다. API 통신을 처리하기 적합합니다. `background()` 함수로 정의합니다.
+	- `Dispatchers.IO`: IO 작업을 처리하기 위해 사용합니다. Worker Thread에서 동작하지만 `Dispathcers.Default` 에 비하여 Priority 가 떨어집니다. `io()` 함수로 정의 합니다.
+
+- SideEffect를 선언한 코드 블록 내에서 수행할 사이드 이펙트의 동작을 정의 할 수 있습니다. 이때 `it`으로 `BoxOutput.Valid` 를 넘겨 받는데 이 값을 통해 전달받을 SideEffect 객체를 참조할 수 있습니다.
+
 
 ## Quick Start
 
@@ -86,15 +111,15 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 
    ```kotlin
    data class ExampleState(
+   		// 서버 데이터를 조회하는 동안 로딩 화면을 노출하기 위한 상태 값
        val onProgress: Boolean = false,
+       // 서버 데이터 조회 중 에러가 발생했을때 에러 화면을 노출하기 위한 상태 값
        val onError: Throwable? = false,
+		// 서버에서 받아온 데이터를 표시하기 위한 상태 값
        val data: Data? = null
    ) : BoxState
    ```
 
-   서버에서 데이터를 조회하는 동안은 `onProgress` 값을 `true` 로 설정하여 로딩중 화면을 그립니다. 서버 조회 후 data를 획득하면 data를 바탕으로 필요한 화면을 구성합니다. 만약 서버 조회에 실패 했다면 `onError` 값이 채워지고 이 경우 필요한 에러 화면을 노출하게 됩니다.
-
-   
 
 2. Event
 
@@ -148,7 +173,14 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
            startActivity<NextActivity>()
        }
    }
-   
+```
+
+   - `Vm`은 해당 `Vm` 에서 처리할 State와 Event, SideEffect를 제네릭으로 선언합니다. 
+
+   - `Vm` 의 Blueprint는 Vm의 `bluePrint()` 함수로 정의합니다. 이때 테스트 코드 작성의 편의를 위해 Vm 외부에 Vm의 확장 함수 형태로 정의하는 방법을 권장합니다. Blueprint의 코드는 아래를 참고하세요.
+ 
+ 
+```kotlin
    fun ExampleVm.onCreatedBlueprint() 
    			: BoxBlueprint<ExampleState, ExampleEvent, ExampleSideEffect> {
        return bluePrint(ExampleState()) {
@@ -174,24 +206,8 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
            }
        }
    }
-   ```
 
-   - `Vm`은 해당 `Vm` 에서 처리할 State와 Event, SideEffect를 제네릭으로 선언합니다. 
-
-   - `Vm` 의 Blueprint는 Vm의 `bluePrint()` 함수로 정의합니다. 이때 테스트 코드 작성의 편의를 위해 Vm 외부에 Vm의 확장 함수 형태로 정의하는 방법을 권장합니다.
-
-   - Blueprint는 크게 Event 정의와, SideEffect 정의로 나눌 수 있습니다.
-
-     - Event 정의
-       - `on()` 함수와 함께 정의할 Event 타입을 제네렉으로 선언합니다.  
-       - `on()` 함수의 코드 블록은 현재 State를 `this` 로, 정의된 Event를 `it` 으로 전달 받습니다. 
-       - `on()` 함수는 `to()` 함수 구현으로 이 Event가 어떤 State로 변할지 또는 어떤 SideEffect가 발생해야 하는지 정의합니다. 
-       - `to()` 함수는 새로 생성될 Event만 갖을 수도 있고 발생할 SideEffect만 갖을 수도 있습니다. 때론은 두 개의 값을 다 정의할 수도 있고 두개의 값을 다 갖지 않을 수도 있습니다. 두개의 값을 다 갖지 않을때는 아무런 동작을 하지 않습니다.
-     - SideEffect의 정의 
-       - SideEffect는 해당 SideEffect가 동작할 `Dispatchers` 에 따라서 3가지 함수로 선언할 수 있습니다.
-         - `Dispatchers.Main`: Main Thread에서 동작할 SideEffect를 정의합니다. 다이얼로그나 팝업을 노출하거나 화면을 전환하는 등 이벤트를 처리하기에 적합합니다. `main()` 함수로 정의합니다.. 
-         - `Dispatchers.Default`: Worker Thread 동작하기를 기대하는 SideEffect를 정의 합니다. API 통신을 처리하기 적합합니다. `background()` 함수로 정의합니다.
-         - `Dispatchers.IO`: IO 작업을 처리하기 위해 사용합니다. Worker Thread에서 동작하지만 `Dispathcers.Default` 에 비하여 Priority 가 떨어집니다. `io()` 함수로 정의 합니다.
+```
 
    - ExampleVm의 `bluePrint()` 코드를 살펴보면 아래와 같습니다.
 
@@ -339,13 +355,13 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 
      
 
-#### 디버깅
+## 디버깅
 
 Box는 불변하는 상태값이 단방향으로 흐르도록 설계되었습니다. 모든 이벤트는 `Vm`의 `intent()` 함수를 통해 전달되고 `intent()` 함수를 통해 생성된 새로운 상태는 `View`의 `render()` 함수에 전달되어 그려집니다. 앱을 개발하다 흔히 발생할 수 있는 에러 상황에서 확인해야할 포인트가 정해져 있기 때문에 복잡한 화면을 그릴때도 비교적 디버깅이 용이합니다.
 
 
 
-#### Testing
+## Testing
 
 Box는 `Vm` 에 정의된 Blueprint를 기반으로 동작합니다. 따라서 Blueprint가 의도한대로 동작한다면 화면이 제대로 동작한다고 간주 할 수 있습니다. `Vm` 으로 테스트 코드를 작성할때 아래 테스트 클래스를 확장하는 것을 추천합니다. (`BoxVm`의 테스트 코드를 작성할땐 `Mockito` 를 사용하여 mock 객체를 활용하는 것을 권장합니다.)
 

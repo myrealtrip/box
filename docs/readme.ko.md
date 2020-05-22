@@ -2,7 +2,7 @@
 
 Myrealtrip 모바일 팀은 보다 빠르고 안정적으로 Android 앱을 개발 할 수 있도록 우리 앱 아키텍쳐를 향상시키는 방법을 항상 고민하고 있습니다. 
 
-Box는 StateMachine 에서 영감 받은 [Blueprint](#What_is_Blueprint?) 와 Kotlin의 코루틴을 활용한 MVI 기반의 Android 앱 아키텍처 프레임 워크입니다. 이 페이지에서는 Box의 기본 컨셉과 Box를 사용하여 어떻게 테스트 가능한 구조의 앱을 개발할 수 있을지에 대해 소개 합니다.
+Box는 StateMachine 에서 영감 받은 [Blueprint](#what-is-blueprint) 와 Kotlin의 코루틴을 활용한 MVI 기반의 Android 앱 아키텍처 프레임 워크입니다. 이 페이지에서는 Box의 기본 컨셉과 Box를 사용하여 어떻게 테스트 가능한 구조의 앱을 개발할 수 있을지에 대해 소개 합니다.
 
 
 
@@ -152,6 +152,33 @@ fun ExampleVm.onCreatedBlueprint()
        }
    }
 ```
+
+위 Blueprint의 내용을 간단하게 설명하자면 아래와 같습니다.
+
+- `ExampleEvent.ReqeustData` Event가 발생했을땐 현재 State에서 `onProgress` 값만 `true` 로 변경하고 `ExampleSideEffect.RequestData` 를 발생시킵니다. `ExampleSideEffect.RequestData`가 발생하면 `requestDataAsync()` 함수를 `Diapathcer.Default` 에서 호출합니다.
+
+한가지 케이스를 더 살펴 볼까요?
+
+- `ExampleEvent.OnDataClicked` Event가 발생하면 현재 State를 변경하지 않고 `ExampleSideEffect.OnDataClicked` 만 발생시킵니다. `ExampleSideEffect.OnDataClicked`가 발생하면 `Dispathcer.Main` 에서 `moveToNextScreen()` 함수를 호출합니다.
+
+참 쉽죠? bluePrint를 구성하는 두 개의 큰 축은 Event 선언과 SideEffect 선언입니다. 각각 `on()`, `main()`, `background()`, `io()` 함수를 사용하는데 그 모양은 아래 이미지를 참고해주세요.
+
+<br/>![box-func-on](images/box-func-on.png)<br/>
+
+- `on()` 함수는 정의할 Event를 제네릭 형태로 선언합니다.
+- `on()` 함수의 코드 블록은 현재 State를 `this` 로, 전달 될 Event를 `it` 으로 받습니다.
+- `on()` 함수는 `to()` 함수 구현으로 이 Event가 어떤 State로 변할지 또는 어떤 SideEffect가 발생해야 하는지 정의합니다.
+- `to()` 함수는 새로 생성될 Event만 갖을 수도 있고 발생할 SideEffect만 갖을 수도 있습니다. 때론은 두 개의 값을 다 정의할 수도 있고 두 개의 값을 모두 갖지 않을 수도 있습니다. 당연하게도 두개의 값을 모두 갖지 않을때는 아무런 동작을 하지 않습니다.
+
+<br/>![box-func-sideeffect](images/box-func-sideeffect.png)<br/>
+
+- SideEffect는 3가지 유형의 함수로 선언할 수 있습니다. SideEffect도 Event 선언과 마찬가지로 각각 SideEffect를 제네릭으로 선언합니다. 
+-  `main()` 함수는 `Dispathcer.Main` 에서 동작합니다. 다이얼로그나 팝업을 노출하거나 화면을 전환하는 이벤트를 처리하기에 적합합니다.
+-  `background()` 함수는 일반적인 background 작업을 처리하는데 적합합니다. 
+-  `io()` I/O 작업과 같이 background 작업을 수행하지만 우선순위가 낮은 작업을 처리하기 적합합니다.
+-  코드 블록으로 전달되는 `Output.Valid` 객체로 전달된 SideEffect, 이전/이후 State를 참조할 수 있습니다.
+
+
 
 #### 3. View의 정의 
 

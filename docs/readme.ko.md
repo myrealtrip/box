@@ -224,60 +224,7 @@ Box는 불변하는 상태값이 단방향으로 흐르도록 설계되었습니
 
 ## Testing
 
-Box는 `BoxVm`에 정의된 Blueprint를 기반으로 동작합니다. Blueprint가 의도한대로 동작한다면 앱이 제대로 동작한다고 간주할 수 있습니다. Blueprint는 미리 정의된 DSL 내에서 구현하므로 가이드에 맞게 개발했다면 아래의 테스트 방법을 적용할 수 있습니다. `BoxVm`의 테스트 코드를 작성할때 아래의 테스트 클래스를 확장하는 것을 추천합니다. 
-
-> 이 테스트 코드는 Mockito를 사용하여 작성되었습니다.
-
-```kotlin
-abstract class VmTest<S : BoxState, E : BoxEvent, SE : BoxSideEffect> {
-
-    @get:Rule
-    val instantExecutorRule = InstantTaskExecutorRule()
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-    abstract val vm: BoxVm<S, E, SE>
-    abstract fun emptyState(): S
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(mainThreadSurrogate)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-        mainThreadSurrogate.close()
-    }
-
-    protected fun BoxVm<S, E, SE>.testIntent(
-        event: E,
-        state: S = emptyState()
-    ): BoxOutput<S, E, SE> {
-        val output = mockBlueprint().reduce(state, event)
-        Mockito.`when`(intent(event)).thenReturn(output)
-        return intent(event) as BoxOutput.Valid<S, E, SE>
-    }
-
-    protected fun <S : BoxState, E : BoxEvent, SE : BoxSideEffect> BoxOutput<S, E, SE>.valid(): BoxOutput.Valid<S, E, SE> {
-        return this as BoxOutput.Valid<S, E, SE>
-    }
-    
-    protected fun doIoSideEffect(output: BoxOutput.Valid<S, E, SE>) {
-        mockBlueprint().ioWorkOrNull(output.sideEffect)!!(output.valid())
-    }
-
-    protected fun doHeavySideEffect(output: BoxOutput.Valid<S, E, SE>) {
-        mockBlueprint().heavyWorkOrNull(output.sideEffect)!!(output.valid())
-    }
-
-    protected fun doSideEffect(output: BoxOutput.Valid<S, E, SE>) {
-        mockBlueprint().workOrNull(output.sideEffect)!!(output.valid())
-    }
-
-    abstract fun mockBlueprint(): BoxBlueprint<S, E, SE>
-}
-```
-
-이 기본 테스트 클래스는 `BoxVm`에 특정 Event가 `intent()` 되었을때 생성되는 새로운 State와 SideEffect를 mocking 하고 검증 할 수 있도록 도와줍니다. 이 클래스를 확장하여 작성한 테스트 코드는 아래와 같습니다.
+Box는 `BoxVm`에 정의된 Blueprint를 기반으로 동작합니다. Blueprint가 의도한대로 동작한다면 앱이 제대로 동작한다고 간주할 수 있습니다. Blueprint는 미리 정의된 DSL 내에서 구현하므로 가이드에 맞게 개발했다면 Box에서 제공하는  [기본 테스트 클래스](https://github.com/myrealtrip/box/blob/master/sample/src/test/java/com/mrt/box/sample/VmTest.kt)를 적용할 수 있습니다. 이 기본 테스트 클래스는 `BoxVm`에 특정 Event가 `intent()` 되었을때 생성되는 새로운 State와 SideEffect를 mocking 하고 검증 할 수 있도록 도와줍니다. 이 클래스를 확장하여 작성한 테스트 코드는 아래와 같습니다.
 
 ```kotlin
 class ExampleVmTest : VmTest<ExampleState, ExampleEvent, ExampleSideEffect>() {

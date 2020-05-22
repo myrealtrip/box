@@ -65,6 +65,8 @@ allprojects {
 dependencies {
 	// ... Your dependencies.
 	implementation "com.github.myrealtrip:box:$boxVersion"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
 }
 ```
 
@@ -320,6 +322,13 @@ class ExampleVmTest : VmTest<ExampleState, ExampleEvent, ExampleSideEffect>() {
     }
 }
 ```
+
+
+## Compatibility
+
+- Box는 `Api level 16` 이상을 지원합니다.
+- Box는 Kotlin `1.3.41` 버전으로 개발되었습니다.
+- Box는 Kotlin Coroutine `1.3.3` 버전으로 개발되었습니다.
 
 
 ## Licence

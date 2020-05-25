@@ -10,7 +10,7 @@ Box는 StateMachine 에서 영감 받은 [Blueprint](#what-is-blueprint) 와 Kot
 
 Box는 MVI 아키텍처를 기반으로 하고 있습니다. MVI 아키텍처에 대한 자세한 내용은 다음 [링크](https://link.medium.com/0cBFY3nEC4)를 확인해주세요. MVI 아키텍처에서 소개하는 데이터 흐름과 동일하게 Box의 데이터 흐름은 단방향입니다. 아래 표를 참고해주세요.
 
-![box uni-direct cycle](images/box-cycle.png)
+![box uni-direct cycle](docs/images/box-cycle.png)
 
 
 ## Goals
@@ -165,14 +165,14 @@ fun ExampleVm.onCreatedBlueprint()
 
 참 쉽죠? bluePrint를 구성하는 두 개의 큰 축은 Event 선언과 SideEffect 선언입니다. 각각 `on()`, `main()`, `background()`, `io()` 함수를 사용하는데 그 모양은 아래 이미지를 참고해주세요.
 
-<br/>![box-func-on](images/box-func-on.png)<br/>
+<br/>![box-func-on](docs/images/box-func-on.png)<br/>
 
 - `on()` 함수는 정의할 Event를 제네릭 형태로 선언합니다.
 - `on()` 함수의 코드 블록은 현재 State를 `this` 로, 전달 될 Event를 `it` 으로 받습니다.
 - `on()` 함수는 `to()` 함수 구현으로 이 Event가 어떤 State로 변할지 또는 어떤 SideEffect가 발생해야 하는지 정의합니다.
 - `to()` 함수는 새로 생성될 Event만 갖을 수도 있고 발생할 SideEffect만 갖을 수도 있습니다. 때론은 두 개의 값을 다 정의할 수도 있고 두 개의 값을 모두 갖지 않을 수도 있습니다. 당연하게도 두개의 값을 모두 갖지 않을때는 아무런 동작을 하지 않습니다.
 
-<br/>![box-func-sideeffect](images/box-func-sideeffect.png)<br/>
+<br/>![box-func-sideeffect](docs/images/box-func-sideeffect.png)<br/>
 
 - SideEffect는 3가지 유형의 함수로 선언할 수 있습니다. SideEffect도 Event 선언과 마찬가지로 각각 SideEffect를 제네릭으로 선언합니다. 
 -  `main()` 함수는 `Dispathcer.Main` 에서 동작합니다. 다이얼로그나 팝업을 노출하거나 화면을 전환하는 이벤트를 처리하기에 적합합니다.

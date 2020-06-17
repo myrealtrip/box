@@ -5,7 +5,7 @@ package com.mrt.box.core
  */
 interface Vm {
     fun intent(event: Any): Any?
-    fun intent(condition: Boolean, className: String, vararg arguments: Any): Any? {
+    fun intentIf(condition: Boolean, className: String, vararg arguments: Any): Any? {
         return if (condition)
             intent(className, arguments)
         else null

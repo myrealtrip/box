@@ -5,6 +5,11 @@ package com.mrt.box.core
  */
 interface Vm {
     fun intent(event: Any): Any?
+    fun intent(condition: Boolean, className: String, vararg arguments: Any): Any? {
+        return if (condition)
+            intent(className, arguments)
+        else null
+    }
     fun intent(className: String, vararg arguments: Any): Any? {
         return try {
             Class.forName(className)?.let { clazz ->
@@ -13,7 +18,8 @@ interface Vm {
                 } catch (e: Exception) {
                     try {
                         intent(
-                            clazz.getConstructor(*arguments.map { it::class.java as Class<*> }.toTypedArray()).newInstance(
+                            clazz.getConstructor(*arguments.map { it::class.java as Class<*> }
+                                .toTypedArray()).newInstance(
                                 *arguments
                             )
                         )

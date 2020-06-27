@@ -7,23 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.core.Box
-import com.mrt.box.core.BoxBlueprint
-import com.mrt.box.core.BoxEvent
-import com.mrt.box.core.BoxOutput
-import com.mrt.box.core.BoxSideEffect
-import com.mrt.box.core.BoxState
-import com.mrt.box.core.BoxVoidSideEffect
-import com.mrt.box.core.BoxVoidState
-import com.mrt.box.core.HeavyWork
-import com.mrt.box.core.IOWork
-import com.mrt.box.core.LightWork
-import com.mrt.box.core.Vm
+import com.mrt.box.core.*
 import com.mrt.box.isValidEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -31,7 +17,7 @@ import kotlin.coroutines.CoroutineContext
  * Created by jaehochoe on 2020-01-01.
  */
 abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
-    Vm {
+        Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
@@ -82,16 +68,16 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         when (output) {
             is BoxOutput.Valid -> {
                 Box.log { "Event to be $output" }
-                if(output.to !is BoxVoidState) {
+                if (output.to !is BoxVoidState) {
                     stateInternal = output.to
                     view(output.to)
                 }
 
-                if(output.sideEffect != null && output.sideEffect !is BoxVoidSideEffect) {
+                if (output.sideEffect != null && output.sideEffect !is BoxVoidSideEffect) {
                     handleSideEffect(output)
                 }
 
-                ((if(output.to is BoxVoidState) stateInternal.consumer() else output.to.consumer()) as? S)?.let { newState ->
+                ((if (output.to is BoxVoidState) stateInternal.consumer() else output.to.consumer()) as? S)?.let { newState ->
                     stateInternal = newState
                 }
             }
@@ -115,8 +101,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private fun doWork(
-        output: BoxOutput.Valid<S, E, SE>,
-        toDo: LightWork<S, E, SE>
+            output: BoxOutput.Valid<S, E, SE>,
+            toDo: LightWork<S, E, SE>
     ) {
         Box.log { "Do in Foreground: ${output.sideEffect}" }
         toDo(output).also {
@@ -126,8 +112,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private fun doWorkInBackgroundThread(
-        output: BoxOutput.Valid<S, E, SE>,
-        toDo: HeavyWork<S, E, SE>
+            output: BoxOutput.Valid<S, E, SE>,
+            toDo: HeavyWork<S, E, SE>
     ) {
         Box.log { "Do in Background: ${output.sideEffect}" }
         workThread {
@@ -139,8 +125,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private fun doWorkInIOThread(
-        output: BoxOutput.Valid<S, E, SE>,
-        toDo: IOWork<S, E, SE>
+            output: BoxOutput.Valid<S, E, SE>,
+            toDo: IOWork<S, E, SE>
     ) {
         Box.log { "Do in IO: ${output.sideEffect}" }
         ioThread {
@@ -155,7 +141,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     fun handleResult(result: Any?) {
         when (result) {
             is BoxState -> {
-                if(result !is BoxVoidState) {
+                if (result !is BoxVoidState) {
                     this.stateInternal = result as S
                     mainThread { view(result) }
                     result.consumer()?.let {
@@ -182,15 +168,19 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     @SuppressWarnings("unchecked")
     protected fun workThread(block: suspend () -> Unit) {
-        launch(Dispatchers.Default) {
-            block()
+        launch {
+            withContext(Dispatchers.Default) {
+                block()
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
     protected fun ioThread(block: suspend () -> Unit) {
-        launch(Dispatchers.IO) {
-            block()
+        launch {
+            withContext(Dispatchers.IO) {
+                block()
+            }
         }
     }
 
@@ -216,10 +206,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     open fun onActivityResult(
-        activity: AppCompatActivity,
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
+            activity: AppCompatActivity,
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
     ) {
         linkedVms()?.forEach {
             it.onActivityResult(activity, requestCode, resultCode, data)

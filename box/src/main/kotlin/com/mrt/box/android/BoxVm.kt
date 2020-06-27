@@ -117,7 +117,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     ) {
         Box.log { "Do in Background: ${output.sideEffect}" }
         workThread {
-            toDo(output)?.await().also {
+            toDo(output)?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
                 handleResult(it)
             }
@@ -130,7 +130,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     ) {
         Box.log { "Do in IO: ${output.sideEffect}" }
         ioThread {
-            toDo(output)?.await().also {
+            toDo(output)?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
                 handleResult(it)
             }

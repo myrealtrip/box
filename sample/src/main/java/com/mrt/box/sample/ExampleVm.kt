@@ -5,6 +5,7 @@ import com.mrt.box.android.BoxVm
 import com.mrt.box.core.BoxBlueprint
 import com.mrt.box.core.bluePrint
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 /**
  * Created by jaehochoe on 2020-01-02.
@@ -14,12 +15,12 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
     override val bluePrint: BoxBlueprint<ExampleState, ExampleEvent, ExampleSideEffect>
         get() = onCreatedBlueprint()
 
-    fun autoCountUpAsync(count: Int) = async {
+    suspend fun autoCountUpAsync(count: Int) : ExampleEvent {
         for (i in 0..count) {
-            intent(ExampleEvent.OnUpCount)
+            launch { intent(ExampleEvent.OnUpCount) }
             kotlinx.coroutines.delay(1000)
         }
-        return@async ExampleEvent.OnFinishedCleaning
+        return ExampleEvent.OnFinishedCleaning
     }
     
     fun finishActivity(activity: Activity) {
@@ -55,7 +56,7 @@ fun ExampleVm.onCreatedBlueprint() : BoxBlueprint<ExampleState, ExampleEvent, Ex
         }
 
         background<ExampleSideEffect.AutoCountUp> {
-            return@background autoCountUpAsync(it.sideEffect.count)
+            autoCountUpAsync(it.sideEffect.count)
         }
     }
 }

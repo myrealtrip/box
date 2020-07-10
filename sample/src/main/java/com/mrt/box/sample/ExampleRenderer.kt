@@ -9,8 +9,9 @@ import com.mrt.box.sample.databinding.ActivityExampleBinding
  * Created by jaehochoe on 2020-01-03.
  */
 object ExampleRenderer : BoxRenderer<ExampleState, ExampleEvent> {
-    override fun render(v: BoxAndroidView<ExampleState, ExampleEvent>, s: ExampleState, vm: Vm?) {
+    override fun render(v: BoxAndroidView<ExampleState, ExampleEvent>, s: ExampleState, vm: Vm?) : Boolean {
         val binding = v.binding<ActivityExampleBinding>()
         binding.count = s.count
+        return super.render(v, s, vm)
     }
 }

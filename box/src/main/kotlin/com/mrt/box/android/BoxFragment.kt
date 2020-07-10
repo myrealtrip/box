@@ -29,9 +29,9 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     private var isBound = false
 
     private val rendererList: List<BoxRenderer<S, E>> by lazy {
-        val list = (extraRenderer() ?: mutableListOf())
+        val list = (renderers() ?: mutableListOf())
         renderer?.let {
-            list.add(0, it)
+            list.add(it)
         }
         list
     }
@@ -109,7 +109,8 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
 
     override fun render(state: S) {
         rendererList.forEach { renderer ->
-            renderer.render(this, state, vm)
+            if (renderer.render(this, state, vm))
+                return@forEach
         }
     }
 
@@ -118,7 +119,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     @Suppress("UNUSED")
-    fun extraRenderer(): MutableList<BoxRenderer<S, E>>? {
+    fun renderers(): MutableList<BoxRenderer<S, E>>? {
         return null
     }
 

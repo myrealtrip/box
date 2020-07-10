@@ -55,11 +55,11 @@ abstract class VmTest<S : BoxState, E : BoxEvent, SE : BoxSideEffect> {
     }
 
 
-    protected fun doIoSideEffect(output: BoxOutput.Valid<S, E, SE>) {
+    protected suspend fun doIoSideEffect(output: BoxOutput.Valid<S, E, SE>) {
         mockBlueprint().ioWorkOrNull(output.sideEffect)!!(output.valid())
     }
 
-    protected fun doHeavySideEffect(output: BoxOutput.Valid<S, E, SE>) {
+    protected suspend fun doHeavySideEffect(output: BoxOutput.Valid<S, E, SE>) {
         mockBlueprint().heavyWorkOrNull(output.sideEffect)!!(output.valid())
     }
 

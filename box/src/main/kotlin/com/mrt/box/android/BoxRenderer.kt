@@ -12,5 +12,7 @@ interface BoxRenderer<S : BoxState, E : BoxEvent> {
             v: BoxAndroidView<S, E>,
             s: S,
             vm: Vm?
-    )
+    ) : Boolean {
+        return false
+    }
 }

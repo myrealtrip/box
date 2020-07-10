@@ -23,9 +23,9 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     BoxAndroidView<S, E> {
 
     private val rendererList: List<BoxRenderer<S, E>> by lazy {
-        val list = (extraRenderer() ?: mutableListOf())
+        val list = (renderers() ?: mutableListOf())
         renderer?.let {
-            list.add(0, it)
+            list.add(it)
         }
         list
     }
@@ -75,7 +75,8 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
 
     override fun render(state: S) {
         rendererList.forEach { renderer ->
-            renderer.render(this, state, vm)
+            if (renderer.render(this, state, vm))
+                return@forEach
         }
     }
 
@@ -84,7 +85,7 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     }
 
     @Suppress("UNUSED")
-    fun extraRenderer(): MutableList<BoxRenderer<S, E>>? {
+    fun renderers(): MutableList<BoxRenderer<S, E>>? {
         return null
     }
 

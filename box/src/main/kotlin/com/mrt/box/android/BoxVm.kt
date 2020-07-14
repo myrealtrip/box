@@ -73,7 +73,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
 
     private fun model(event: E): BoxOutput<S, E, SE> {
         return bluePrint.reduce(stateInternal, event).also { output ->
-            Box.log { "BoxVm found Event [$event]" }
+            Box.log { "BoxVm found Event [${event.javaClass.simpleName}]" }
             handleOutput(output)
         }
     }
@@ -86,13 +86,14 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                 if (output.to !is BoxVoidState) {
                     stateInternal = output.to
                     view(output.to)
+                    output.to.scope = null // State's scope will initialized when finished rendering
                 }
 
                 if (output.sideEffect != null && output.sideEffect !is BoxVoidSideEffect) {
                     handleSideEffect(output)
                 }
 
-                ((if (output.to is BoxVoidState) stateInternal.consumer() else output.to.consumer()) as? S)?.let { newState ->
+                ((if (output.to is BoxVoidState) stateInternal.recycle() else output.to.recycle()) as? S)?.let { newState ->
                     stateInternal = newState
                 }
             }
@@ -125,7 +126,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         Box.log { "Do in Foreground: ${output.sideEffect}" }
         toDo(output).also {
             Box.log { "Result is $it for ${output.sideEffect}" }
-            handleResult(it)
+            handleSideEffectResult(it)
         }
     }
 
@@ -137,7 +138,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         workThread {
             toDo(output)?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
-                handleResult(it)
+                handleSideEffectResult(it)
             }
         }
     }
@@ -150,7 +151,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         ioThread {
             toDo(output)?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
-                handleResult(it)
+                handleSideEffectResult(it)
             }
         }
     }
@@ -163,19 +164,19 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         launch {
             toDo(output)?.await()?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
-                handleResult(it)
+                handleSideEffectResult(it)
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    fun handleResult(result: Any?) {
+    fun handleSideEffectResult(result: Any?) {
         when (result) {
             is BoxState -> {
                 if (result !is BoxVoidState) {
                     this.stateInternal = result as S
                     mainThread { view(result) }
-                    result.consumer()?.let {
+                    result.recycle()?.let {
                         this.stateInternal = it as S
                     }
                 }

@@ -7,8 +7,9 @@ import com.mrt.box.android.BoxVoidRenderingScope
  * Created by jaehochoe on 2019-12-31.
  */
 interface BoxState {
-    val scope: BoxRenderingScope?
-    fun consumer(): BoxState? {
+    var scope: BoxRenderingScope?
+
+    fun recycle(): BoxState? {
         return null
     }
 

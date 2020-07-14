@@ -7,6 +7,5 @@ import com.mrt.box.android.BoxVoidRenderingScope
  * Created by jaehochoe on 2020-01-13.
  */
 object BoxVoidState : BoxState {
-    override val scope: BoxRenderingScope?
-        get() = BoxVoidRenderingScope
+    override var scope: BoxRenderingScope? = null
 }

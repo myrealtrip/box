@@ -26,7 +26,7 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
     suspend fun goProgress() {
         for (i in 0..100) {
             launch { intent(ExampleEvent.OnProgress(i)) }
-            kotlinx.coroutines.delay(300)
+            kotlinx.coroutines.delay(100)
         }
     }
     

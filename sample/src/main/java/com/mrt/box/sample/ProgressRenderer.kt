@@ -6,13 +6,12 @@ import com.mrt.box.core.Vm
 import com.mrt.box.sample.databinding.ActivityExampleBinding
 
 /**
- * Created by jaehochoe on 2020-01-03.
+ * Created by jaehochoe on 14/07/2020.
  */
-object ExampleRenderer : BoxStateRenderer<ExampleState> {
+object ProgressRenderer : BoxStateRenderer<ExampleState> {
     override fun render(v: BoxAndroidView, s: ExampleState, vm: Vm?) {
-        println("ExampleRenderer.render() $s")
+        println("ProgressRenderer.render() $s")
         val binding = v.binding<ActivityExampleBinding>()
-        binding.vm = vm
-        binding.count = s.count
+        binding.progress.progress = s.progress
     }
 }

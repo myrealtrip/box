@@ -22,13 +22,6 @@ import kotlinx.coroutines.launch
 abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : AppCompatActivity(),
     BoxAndroidView {
 
-    private val rendererList: List<BoxRenderer> by lazy {
-        val list = (extraRenderer() ?: mutableListOf())
-        renderer?.let {
-            list.add(0, it)
-        }
-        list
-    }
     abstract val renderer: BoxRenderer?
 
     abstract val viewInitializer: BoxViewInitializer?
@@ -38,6 +31,8 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     override val binding: ViewDataBinding? by lazy {
         if (layout > 0) DataBindingUtil.setContentView<ViewDataBinding>(this, layout) else null
     }
+
+    open val partialRenderers: Map<BoxRenderingScope, BoxRenderer>? = null
 
     open fun preOnCreate(savedInstanceState: Bundle?) {
     }
@@ -56,9 +51,14 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
     }
 
     override fun render(state: BoxState) {
-        rendererList.forEach { renderer ->
-            renderer.renderView(this, state, vm)
+        partialRenderers?.forEach {
+            if (it.key == BoxVoidRenderingScope || state.scope() == it.key) {
+                it.value.renderView(this, state, vm)
+            }
         }
+
+        if (state.scope() == BoxVoidRenderingScope)
+            renderer?.renderView(this, state, vm)
     }
 
     override fun intent(event: BoxEvent) {
@@ -80,11 +80,6 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
         viewInitializer?.onCleared()
         vm?.cancel()
         super.onDestroy()
-    }
-
-    @Suppress("UNUSED")
-    fun extraRenderer(): MutableList<BoxRenderer>? {
-        return null
     }
 
     override fun activity(): AppCompatActivity {

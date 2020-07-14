@@ -32,8 +32,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Created by jaehochoe on 2020-01-01.
  */
-abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
-    Vm {
+abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope, Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 

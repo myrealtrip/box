@@ -3,6 +3,7 @@ package com.mrt.box.sample
 import android.app.Activity
 import com.mrt.box.core.BoxBlueprint
 import junit.framework.Assert.assertTrue
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -40,8 +41,11 @@ class ExampleVmTest : VmTest<ExampleState, ExampleEvent, ExampleSideEffect>() {
     fun `intent OnClickLayout`() {
         val output = vm.testIntent(ExampleEvent.OnClickLayout)
         doHeavySideEffect(output.valid())
-        verify(vm).autoCountUpAsync(3)
+        runBlocking {
+            verify(vm).autoCountUpAsync(3)
+        }
     }
+
     @Test
     fun `intent OnClickFinish`() {
         val activity = mock(Activity::class.java)

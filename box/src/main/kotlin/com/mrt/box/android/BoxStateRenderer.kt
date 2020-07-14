@@ -1,7 +1,5 @@
-package com.mrt.box.android.event
+package com.mrt.box.android
 
-import com.mrt.box.android.BoxAndroidView
-import com.mrt.box.android.BoxRenderer
 import com.mrt.box.core.BoxState
 import com.mrt.box.core.Vm
 import java.lang.IllegalArgumentException

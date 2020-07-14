@@ -28,13 +28,7 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     abstract val isNeedLazyLoading: Boolean
     private var isBound = false
 
-    private val rendererList: List<BoxRenderer> by lazy {
-        val list = (extraRenderer() ?: mutableListOf())
-        renderer?.let {
-            list.add(0, it)
-        }
-        list
-    }
+    open val partialRenderers: Map<BoxRenderingScope, BoxRenderer>? = null
 
     abstract val renderer: BoxRenderer?
 
@@ -106,17 +100,20 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     }
 
     override fun render(state: BoxState) {
-        rendererList.forEach { renderer ->
-            renderer.renderView(this, state, vm)
+        partialRenderers?.forEach {
+            if (it.key == BoxVoidRenderingScope || state.scope() == it.key) {
+                it.value.renderView(this, state, vm)
+            }
         }
+        if (state.scope() == BoxVoidRenderingScope)
+            renderer?.renderView(this, state, vm)
     }
 
     override fun intent(event: BoxEvent) {
         vm?.intent(event)
     }
 
-    @Suppress("UNUSED")
-    fun extraRenderer(): MutableList<BoxRenderer>? {
+    open fun extraRenderer(): MutableList<BoxRenderer>? {
         return null
     }
 

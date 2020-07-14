@@ -10,11 +10,21 @@ class BoxBlueprint<S : BoxState, E : BoxEvent, SE : BoxSideEffect> internal cons
     private val outputs: Map<BoxKey<E, E>, (S, E) -> To<S, SE>>,
     private val ioWorks: Map<BoxKey<SE, SE>, IOWork<S, E, SE>>,
     private val heavyWorks: Map<BoxKey<SE, SE>, HeavyWork<S, E, SE>>,
-    private val lightWorks: Map<BoxKey<SE, SE>, LightWork<S, E, SE>>
+    private val lightWorks: Map<BoxKey<SE, SE>, LightWork<S, E, SE>>,
+    private val asyncWorks: Map<BoxKey<SE, SE>, AsyncWork<S, E, SE>>
 ) {
     fun reduce(state: S, event: E): BoxOutput<S, E, SE> {
         return synchronized(this) {
             state.toOutput(event)
+        }
+    }
+
+    fun asyncWorkOrNull(sideEffect: SE): AsyncWork<S, E, SE>? {
+        return synchronized(this) {
+            asyncWorks
+                .filter { it.key.check(sideEffect) }
+                .map { it.value }
+                .firstOrNull()
         }
     }
 

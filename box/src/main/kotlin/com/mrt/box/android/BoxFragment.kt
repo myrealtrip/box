@@ -23,12 +23,12 @@ import kotlinx.coroutines.launch
  * Created by jaehochoe on 2020-01-03.
  */
 abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fragment(),
-    BoxAndroidView<S, E> {
+    BoxAndroidView {
 
     abstract val isNeedLazyLoading: Boolean
     private var isBound = false
 
-    private val rendererList: List<BoxRenderer<S, E>> by lazy {
+    private val rendererList: List<BoxRenderer> by lazy {
         val list = (extraRenderer() ?: mutableListOf())
         renderer?.let {
             list.add(0, it)
@@ -36,9 +36,9 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
         list
     }
 
-    abstract val renderer: BoxRenderer<S, E>?
+    abstract val renderer: BoxRenderer?
 
-    abstract val viewInitializer: BoxViewInitializer<S, E>?
+    abstract val viewInitializer: BoxViewInitializer?
 
     abstract val vm: BoxVm<S, E, SE>?
 
@@ -100,25 +100,23 @@ abstract class BoxFragment<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : Fra
     private fun bindingVm() {
         vm?.let {
             viewInitializer?.initializeView(this, vm)
-            viewInitializer?.bindingVm(binding, it)
             it.bind(this)
             isBound = true
         }
     }
 
-
-    override fun render(state: S) {
+    override fun render(state: BoxState) {
         rendererList.forEach { renderer ->
-            renderer.render(this, state, vm)
+            renderer.renderView(this, state, vm)
         }
     }
 
-    override fun intent(event: E) {
+    override fun intent(event: BoxEvent) {
         vm?.intent(event)
     }
 
     @Suppress("UNUSED")
-    fun extraRenderer(): MutableList<BoxRenderer<S, E>>? {
+    fun extraRenderer(): MutableList<BoxRenderer>? {
         return null
     }
 

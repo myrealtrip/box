@@ -216,7 +216,7 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         }
     }
 
-    fun <V : BoxAndroidView<S, E>> bind(view: V) {
+    fun <V : BoxAndroidView> bind(view: V) {
         when (view) {
             is LifecycleOwner -> {
                 currentState.observe(view, Observer {

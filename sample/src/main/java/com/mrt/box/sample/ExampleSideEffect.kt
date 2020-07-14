@@ -9,4 +9,7 @@ import com.mrt.box.core.BoxSideEffect
 sealed class ExampleSideEffect : BoxSideEffect {
     data class AutoCountUp(val count: Int) : ExampleSideEffect()
     data class Finish(val activity: Activity) : ExampleSideEffect()
+    object GoProgress: ExampleSideEffect()
 }
+
+

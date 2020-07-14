@@ -12,5 +12,7 @@ sealed class ExampleEvent : BoxEvent {
     object OnLongClick : ExampleEvent()
     object OnFinishedCleaning : ExampleEvent()
     object OnClickLayout : ExampleEvent()
+    object OnClickedProgress : ExampleEvent()
     data class OnClickFinish(val activity: Activity) : ExampleEvent()
+    data class OnProgress(val progress: Int) : ExampleEvent()
 }

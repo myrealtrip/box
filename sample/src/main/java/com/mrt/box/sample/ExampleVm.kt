@@ -22,6 +22,13 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
         }
         return ExampleEvent.OnFinishedCleaning
     }
+
+    suspend fun goProgress() {
+        for (i in 0..100) {
+            launch { intent(ExampleEvent.OnProgress(i)) }
+            kotlinx.coroutines.delay(100)
+        }
+    }
     
     fun finishActivity(activity: Activity) {
         activity.finish()
@@ -29,7 +36,7 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 }
 
 fun ExampleVm.onCreatedBlueprint() : BoxBlueprint<ExampleState, ExampleEvent, ExampleSideEffect> {
-    return bluePrint(ExampleState(0)) {
+    return bluePrint(ExampleState()) {
 
         on<ExampleEvent.OnUpCount> {
             to(copy(count = count + 1))
@@ -45,6 +52,16 @@ fun ExampleVm.onCreatedBlueprint() : BoxBlueprint<ExampleState, ExampleEvent, Ex
         }
         on<ExampleEvent.OnClickFinish> {
             to(ExampleSideEffect.Finish(it.activity))
+        }
+        on<ExampleEvent.OnClickedProgress> {
+            to(ExampleSideEffect.GoProgress)
+        }
+        on<ExampleEvent.OnProgress> {
+            to(copy(scope = ProgressScope, progress = progress + 1))
+        }
+
+        background<ExampleSideEffect.GoProgress> {
+            goProgress()
         }
         
         main<ExampleSideEffect.Finish> {

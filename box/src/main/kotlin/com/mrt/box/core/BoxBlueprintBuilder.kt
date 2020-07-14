@@ -3,6 +3,7 @@ package com.mrt.box.core
 import com.mrt.box.core.internal.BoxKey
 import kotlinx.coroutines.Deferred
 
+typealias AsyncWork<STATE, EVENT, SIDE_EFFECT> = (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>?
 typealias HeavyWork<STATE, EVENT, SIDE_EFFECT> = suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?
 typealias IOWork<STATE, EVENT, SIDE_EFFECT> = suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?
 typealias LightWork<STATE, EVENT, SIDE_EFFECT> = (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?
@@ -13,6 +14,8 @@ typealias LightWork<STATE, EVENT, SIDE_EFFECT> = (BoxOutput.Valid<STATE, EVENT, 
 class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, SIDE_EFFECT : BoxSideEffect>(private val initialState: STATE) {
     val outputs =
         mutableMapOf<BoxKey<EVENT, EVENT>, (STATE, EVENT) -> BoxBlueprint.To<STATE, SIDE_EFFECT>>()
+    val asyncWorks =
+        mutableMapOf<BoxKey<SIDE_EFFECT, SIDE_EFFECT>, (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>?>()
     val heavyWorks =
         mutableMapOf<BoxKey<SIDE_EFFECT, SIDE_EFFECT>, suspend (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Any?>()
     val ioWorks =
@@ -31,6 +34,13 @@ class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, SIDE_EFFECT : BoxS
     ) {
         heavyWorks[BoxKey<SIDE_EFFECT, SE>(SE::class.java)] =
             init as HeavyWork<STATE, EVENT, SIDE_EFFECT>
+    }
+
+    inline fun <reified SE : SIDE_EFFECT> async(
+        noinline init: AsyncWork<STATE, EVENT, SE>
+    ) {
+        asyncWorks[BoxKey<SIDE_EFFECT, SE>(SE::class.java)] =
+            init as AsyncWork<STATE, EVENT, SIDE_EFFECT>
     }
 
     inline fun <reified SE : SIDE_EFFECT> main(
@@ -63,7 +73,8 @@ class BoxBlueprintBuilder<STATE : BoxState, EVENT : BoxEvent, SIDE_EFFECT : BoxS
             outputs.toMap(),
             ioWorks.toMap(),
             heavyWorks.toMap(),
-            lightWorks.toMap()
+            lightWorks.toMap(),
+            asyncWorks.toMap()
         )
     }
 

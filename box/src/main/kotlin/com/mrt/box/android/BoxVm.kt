@@ -7,9 +7,25 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.mrt.box.android.event.InAppEvent
-import com.mrt.box.core.*
+import com.mrt.box.core.AsyncWork
+import com.mrt.box.core.Box
+import com.mrt.box.core.BoxBlueprint
+import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxOutput
+import com.mrt.box.core.BoxSideEffect
+import com.mrt.box.core.BoxState
+import com.mrt.box.core.BoxVoidSideEffect
+import com.mrt.box.core.BoxVoidState
+import com.mrt.box.core.HeavyWork
+import com.mrt.box.core.IOWork
+import com.mrt.box.core.LightWork
+import com.mrt.box.core.Vm
 import com.mrt.box.isValidEvent
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 
@@ -17,7 +33,7 @@ import kotlin.coroutines.CoroutineContext
  * Created by jaehochoe on 2020-01-01.
  */
 abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel(), CoroutineScope,
-        Vm {
+    Vm {
 
     abstract val bluePrint: BoxBlueprint<S, E, SE>
 
@@ -98,11 +114,14 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
         bluePrint.ioWorkOrNull(sideEffect)?.let {
             doWorkInIOThread(output, it)
         }
+        bluePrint.asyncWorkOrNull(sideEffect)?.let {
+            doWorkAsync(output, it)
+        }
     }
 
     private fun doWork(
-            output: BoxOutput.Valid<S, E, SE>,
-            toDo: LightWork<S, E, SE>
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: LightWork<S, E, SE>
     ) {
         Box.log { "Do in Foreground: ${output.sideEffect}" }
         toDo(output).also {
@@ -112,8 +131,8 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private fun doWorkInBackgroundThread(
-            output: BoxOutput.Valid<S, E, SE>,
-            toDo: HeavyWork<S, E, SE>
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: HeavyWork<S, E, SE>
     ) {
         Box.log { "Do in Background: ${output.sideEffect}" }
         workThread {
@@ -125,12 +144,25 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     private fun doWorkInIOThread(
-            output: BoxOutput.Valid<S, E, SE>,
-            toDo: IOWork<S, E, SE>
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: IOWork<S, E, SE>
     ) {
         Box.log { "Do in IO: ${output.sideEffect}" }
         ioThread {
             toDo(output)?.also {
+                Box.log { "Result is $it for ${output.sideEffect}" }
+                handleResult(it)
+            }
+        }
+    }
+
+    private fun doWorkAsync(
+        output: BoxOutput.Valid<S, E, SE>,
+        toDo: AsyncWork<S, E, SE>
+    ) {
+        Box.log { "Do Async: ${output.sideEffect}" }
+        launch {
+            toDo(output)?.await()?.also {
                 Box.log { "Result is $it for ${output.sideEffect}" }
                 handleResult(it)
             }
@@ -206,10 +238,10 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
     }
 
     open fun onActivityResult(
-            activity: AppCompatActivity,
-            requestCode: Int,
-            resultCode: Int,
-            data: Intent?
+        activity: AppCompatActivity,
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
     ) {
         linkedVms()?.forEach {
             it.onActivityResult(activity, requestCode, resultCode, data)

@@ -190,9 +190,9 @@ View는 `BoxActivity` 또는 `BoxFragment` 를 구현합니다. 이 예제에서
    class ExampleActivity
        : BoxActivity<ExampleState, ExampleEvent, ExampleSideEffect>() {
    
-       override val renderer: BoxRenderer<ExampleState, ExampleEvent>?
+       override val renderer: BoxRenderer?
                = ExampleRenderer
-       override val viewInitializer: BoxViewInitializer<ExampleState, ExampleEvent>?
+       override val viewInitializer: BoxViewInitializer?
                = ExampleInitView
        override val layout: Int
                = R.layout.activity_example

@@ -6,10 +6,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import com.mrt.box.android.event.BoxInAppEvent
-import com.mrt.box.android.event.InAppEvent
+import com.mrt.box.event.BoxInAppEvent
+import com.mrt.box.event.InAppEvent
 import com.mrt.box.core.Box
 import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxMultipleScopeState
 import com.mrt.box.core.BoxSideEffect
 import com.mrt.box.core.BoxState
 import kotlinx.coroutines.cancel
@@ -52,11 +53,10 @@ abstract class BoxActivity<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : App
 
     override fun render(state: BoxState) {
         partialRenderers?.forEach {
-            if (it.key == BoxVoidRenderingScope || state.scope() == it.key) {
+            if (state.scope() == it.key || if(state is BoxMultipleScopeState) state.scopes().contains(it.key) else false) {
                 it.value.renderView(this, state, vm)
             }
         }
-
         if (state.scope() == BoxVoidRenderingScope)
             renderer?.renderView(this, state, vm)
     }

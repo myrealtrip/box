@@ -57,7 +57,7 @@ fun ExampleVm.onCreatedBlueprint() : BoxBlueprint<ExampleState, ExampleEvent, Ex
             to(ExampleSideEffect.GoProgress)
         }
         on<ExampleEvent.OnProgress> {
-            to(copy(scope = ProgressScope, progress = progress + 1))
+            to(copy(progress = progress + 1).addScopes<ExampleState>(ProgressScope, ColorScope))
         }
 
         background<ExampleSideEffect.GoProgress> {

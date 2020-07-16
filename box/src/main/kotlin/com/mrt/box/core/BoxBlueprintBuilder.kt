@@ -1,6 +1,5 @@
 package com.mrt.box.core
 
-import com.mrt.box.core.internal.BoxKey
 import kotlinx.coroutines.Deferred
 
 typealias AsyncWork<STATE, EVENT, SIDE_EFFECT> = (BoxOutput.Valid<STATE, EVENT, SIDE_EFFECT>) -> Deferred<Any?>?

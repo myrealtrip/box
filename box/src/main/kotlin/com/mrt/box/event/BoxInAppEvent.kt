@@ -1,4 +1,4 @@
-package com.mrt.box.android.event
+package com.mrt.box.event
 
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BroadcastChannel

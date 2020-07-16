@@ -17,6 +17,7 @@ class ExampleActivity
     }
 
     override val partialRenderers: Map<BoxRenderingScope, BoxRenderer>? = mapOf(
-        ProgressScope to ProgressRenderer
+        ProgressScope to ProgressRenderer,
+        ColorScope to ColorRenderer
     )
 }

@@ -6,11 +6,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import com.mrt.box.android.event.InAppEvent
+import com.mrt.box.event.InAppEvent
 import com.mrt.box.core.AsyncWork
 import com.mrt.box.core.Box
 import com.mrt.box.core.BoxBlueprint
 import com.mrt.box.core.BoxEvent
+import com.mrt.box.core.BoxMultipleScopeState
 import com.mrt.box.core.BoxOutput
 import com.mrt.box.core.BoxSideEffect
 import com.mrt.box.core.BoxState
@@ -86,7 +87,12 @@ abstract class BoxVm<S : BoxState, E : BoxEvent, SE : BoxSideEffect> : ViewModel
                 if (output.to !is BoxVoidState) {
                     stateInternal = output.to
                     view(output.to)
-                    output.to.scope = null // State's scope will initialized when finished rendering
+
+                    // State's scope will initialized when finished rendering
+                    when(output.to) {
+                        is BoxState -> output.to.scope = null
+                        is BoxMultipleScopeState -> output.to.clearAllScopes()
+                    }
                 }
 
                 if (output.sideEffect != null && output.sideEffect !is BoxVoidSideEffect) {

@@ -111,7 +111,7 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
    override val blueprint: BoxBlueprint<ExampleState, ExampleEvent, ExampleSideEffect>
        get() = onCreatedBlueprint()
 
-   fun requestDataAsync() = async {
+   suspend fun requestDataAsync(): ExampleEvent {
        return@async Api.requestData().onSuccessed {
            ExampleEvent.FetchedData(it.data)
        }.onFailed {

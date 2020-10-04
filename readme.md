@@ -10,10 +10,10 @@ Read this in other languages: [English](readme.md), [한국어](readme.ko.md)
 
 ## MVI
 
-Box is based on the MVI architecture. For more information on the MVI architecture, please check the following [link](https://medium.com/@jaehochoe/android-mvi-7304bc7e1a84). The data flow in Box is one-way, It is the same as the way introduced in the MVI architecture.
+Box is based on the MVI architecture. For more information on the MVI architecture, please check the following [Link](https://medium.com/@jaehochoe/android-mvi-7304bc7e1a84). The data flow in Box is one-way, It is the same as the way introduced in the MVI architecture.
 
 Please refer to the table below.
-![box uni-direct cycle](images/box-cycle.png)
+![box uni-direct cycle](docs/images/box-cycle.png)
 
 ## Goals
 
@@ -36,13 +36,13 @@ State is trigger to change the state of app. It's able to be user interaction an
 
 ### SideEffect
 
-In addition, SideEffect would perform tasks that cannot be handled by State like Toast, Dialog and Activity transition. It also possible to operate works to do in the background such as API call and I/O by using SideEffect
+In addition, SideEffect would perform tasks that cannot be handled by State like Toast, Dialog and Activity transition. It also possible to operate works to do in the background such as API call and I/O by using SideEffect.
 
 ### What is Blueprint?
 
 As I mentioned above, when you define the relationship between State, Event, and SideEffect generally, you need to implement `Presenter` or `reduce()` function of `ViewModel`.
 
-The `reduce()` function would be implemented to receive both the current State and a new event as arguments. Also it returns a new State and generate SideEffect when necessary. Box uses DSL named Blueprint to define relationship between State, Event and SideEffect instead of implementing `reduce()` function
+The `reduce()` function would be implemented to receive both the current State and a new event as arguments. Also it returns a new State and generate SideEffect when necessary. Box uses DSL named Blueprint to define relationship between State, Event and SideEffect instead of implementing `reduce()` function.
 
 Blueprint is largely divided into Event definition and SideEffect definition. Please refer to the sample code for detailed usage.
 
@@ -76,7 +76,7 @@ dependencies {
 
 #### 1. The definition of State, Event and SideEffect
 
-There are own State, Event and SideEffect that each screen uses. Define each component required for the screen when you develop apps with box
+There are own State, Event and SideEffect that each screen uses. Define each component required for the screen when you develop apps with Box.
 
    ```kotlin
    data class ExampleState(
@@ -129,7 +129,7 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
 }
 ```
 Oops! These code snippets are not perfect to know regarding Blueprint. 
-Box suggest that define the Blueprint generation code as an extension function of the corresponding VM for complete test `BoxVm`
+Box suggest that define the Blueprint generation code as an extension function of the corresponding VM for complete test `BoxVm`.
 For example:
 
 ```kotlin
@@ -164,23 +164,23 @@ When it comes to "Blueprint" is like this:
 - When the `ExampleEvent.ReqeustData` occurs, only the  `onProgress` value in the current state is changed to `true` and `ExampleSideEffect.RequestData` is generated. When `ExampleSideEffect.RequestData` occurs, the `requestDataAsync()` function is called from `Diapathcer.Default`.
 
 Let's look at one more case?
-- If `ExampleEvent.OnDataClicked` event occurs, it triggers `ExampleSideEffect.OnDataClicked` without changing the current State. Also it call `moveToNextScreen()` in `Dispathcer.Main`
+- If `ExampleEvent.OnDataClicked` event occurs, it triggers `ExampleSideEffect.OnDataClicked` without changing the current State. Also it call `moveToNextScreen()` in `Dispathcer.Main`.
 
 The key of making up a Blueprint is declaring both Event and SideEffect. It uses their own `on()`, `main()`, `background()`, `io()` functions.
 It's way too easy, isn’t it? Refer to the images below.
 
-<br/>![box-func-on](images/box-func-on.png)<br/>
+<br/>![box-func-on](docs/images/box-func-on.png)<br/>
 
 - `on()` The function declares the Event to be defined in generic form..
 - `on()` The code block of the function receives the current State as `this` and the event to be delivered as `it`.
 - `on()` It is the implementation of the `to()` function to define which State this Event will change or which SideEffect should occur.
-- `to()` It can have only newly created Events or only SideEffects occuring. Sometimes, you can define both values ​​or not. Of course, if you don't have both values, there is no action
+- `to()` It can have only newly created Events or only SideEffects occuring. Sometimes, you can define both values ​​or not. Of course, if you don't have both values, there is no action.
 
-<br/>![box-func-sideeffect](images/box-func-sideeffect.png)<br/>
+<br/>![box-func-sideeffect](docs/images/box-func-sideeffect.png)<br/>
 
--  SideEffect can be declared as three types of functions. SideEffect can be declared as generic like the Event Declaration,
+-  SideEffect can be declared as three types of functions. SideEffect can be declared as generic like the Event Declaration.
 -  `main()` function works on `Dispathcer.Main`. It is suitable for exposing dialogs or handling events for screen transition.
--  `background()` function works for common background work
+-  `background()` function works for common background work.
 -  `io()` performs background tasks such as I/O tasks, but is suitable for handling low priority tasks.
 -  It can refer to the SideEffect, before/after State passed to the `Output.Valid` object delivering to the code block.
 

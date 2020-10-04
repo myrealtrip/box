@@ -128,8 +128,10 @@ class ExampleVm : BoxVm<ExampleState, ExampleEvent, ExampleSideEffect>() {
    }
 }
 ```
-Oops! These code snippets are not perfect to know regarding Blueprint. 
+Oops! These code snippets are not perfect to know regarding Blueprint.
+
 Box suggest that define the Blueprint generation code as an extension function of the corresponding VM for complete test `BoxVm`.
+
 For example:
 
 ```kotlin
@@ -174,7 +176,7 @@ It's way too easy, isn’t it? Refer to the images below.
 - `on()` The function declares the Event to be defined in generic form..
 - `on()` The code block of the function receives the current State as `this` and the event to be delivered as `it`.
 - `on()` It is the implementation of the `to()` function to define which State this Event will change or which SideEffect should occur.
-- `to()` It can have only newly created Events or only SideEffects occuring. Sometimes, you can define both values ​​or not. Of course, if you don't have both values, there is no action.
+- `to()` It can have only newly created Events or only SideEffects occuring. Sometimes, you can define both values ​​or not.
 
 <br/>![box-func-sideeffect](docs/images/box-func-sideeffect.png)<br/>
 

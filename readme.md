@@ -183,13 +183,15 @@ It's way too easy, isn’t it? Refer to the images below.
 -  SideEffect can be declared as three types of functions. SideEffect can be declared as generic like the Event Declaration.
 -  `main()` function works on `Dispathcer.Main`. It is suitable for exposing dialogs or handling events for screen transition.
 -  `background()` function works for common background work.
--  `io()` performs background tasks such as I/O tasks, but is suitable for handling low priority tasks.
+-  `io()` performs background tasks such as I/O tasks, but it's suitable for handling low priority tasks.
 -  It can refer to the SideEffect, before/after State passed to the `Output.Valid` object delivering to the code block.
 
 
 #### 3. The definition of View
 
-View implements `BoxActivity` or `BoxFragment`. In this example, we use `BoxActivity`. Please refer the code below.
+View implements `BoxActivity` or `BoxFragment`. In this example, we use `BoxActivity`. 
+
+Please refer the code below.
 
 For example:
 
@@ -224,17 +226,20 @@ For example:
 > Please remember intent() and render()!
 
 Box is designed so that constant state values ​​flow in one direction. 
-Every event is updated via the `intent()` function of `BoxVm`. And the new state created through the `intent()` function is passed to the `render()` function of View and drawn. It is relatively easy to debug even when drawing complex screens because points to be checked in error situations that may occur during app development are determined.
+Every event is updated via the `intent()` function of `BoxVm`. And the new state created through the `intent()` function is passed to the `render()` function of View and drawn. Since the lines to be checked is determined, debugging is relatively easy even when you need to develop complicated screens.
+
 
 ## Testability
 
-Box operates based on the Blueprint defined in `BoxVm`. If the Blueprint works as intended, It can assume that the app is working properly. 
+Box operates based on the Blueprint defined in `BoxVm`. If the Blueprint works as intended, It can assume the logics works properly 
 
 If Blueprint would be implemented according to to the guide within a predefined DSL, it can be adopted [Basic Test Class](https://github.com/myrealtrip/box/blob/master/sample/src/test/java/com/mrt/box/sample/VmTest.kt), Box provides.
 
 This basic test class helps mocking and verifying new State and SideEffects created when a specific event is `intent()` in `BoxVm`. 
 
-The test code written by extending this class. Refer the code below :
+The test codes was written by extending this class.
+
+Refer the code below :
 
 ```kotlin
 class ExampleVmTest : VmTest<ExampleState, ExampleEvent, ExampleSideEffect>() {
